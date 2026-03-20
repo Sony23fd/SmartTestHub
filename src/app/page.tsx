@@ -1,66 +1,49 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import { connectToDatabase } from "@/lib/mongoose";
+import { Test } from "@/models/Test";
+import TestGrid from "./TestGrid";
 
-export default function Home() {
+export const revalidate = 0;
+
+export default async function HomePage() {
+  await connectToDatabase();
+  const tests = await Test.find().sort({ createdAt: -1 }).lean();
+
+  const serialized = tests.map((t: any) => ({
+    id: t._id.toString(),
+    slug: t.slug,
+    title: t.title,
+    price: t.price,
+    description: t.description || '',
+  }));
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '52px', maxWidth: '520px' }}>
+        <span style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#475569', marginBottom: '16px' }}>
+          SMART TEST HUB
+        </span>
+        <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15, marginBottom: '14px', letterSpacing: '-0.02em' }}>
+          Тестийг сонго
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: 1.7 }}>
+          Шинжлэх ухааны үндэслэлтэй тестүүдээр өөрийгөө болон хайртай хүмүүсээ илүү сайн ойлго.
+        </p>
+      </div>
+
+      {/* Test Cards Grid */}
+      {serialized.length === 0 ? (
+        <div style={{ background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '20px', padding: '48px 40px', textAlign: 'center', color: '#64748b' }}>
+          Тест байхгүй байна. <a href="/api/seed" style={{ color: '#7c9eff' }}>/api/seed</a> ажиллуулна уу.
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      ) : (
+        <TestGrid tests={serialized} />
+      )}
+
+      {/* Footer */}
+      <div style={{ marginTop: 60, color: '#334155', fontSize: '0.8rem' }}>
+        © 2026 Smart Test Hub
+      </div>
+    </main>
   );
 }
