@@ -17,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="mn" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        {/* Starfield overlay */}
+        {/* Animated Background Layers */}
         <div className="stars" aria-hidden="true" />
-        {/* Page content sits above stars */}
+        <div className="nebula" aria-hidden="true" />
+        
+        {/* Page content sits above background */}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {children}
         </div>
