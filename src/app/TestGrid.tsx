@@ -82,12 +82,18 @@ function TestCard({ id, slug, title, price, description }: TestCardProps) {
 export default function TestGrid({ tests }: { tests: TestCardProps[] }) {
   return (
     <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-      gap: '16px', width: '100%', maxWidth: '900px',
+      display: 'flex',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: '32px',
+      width: '100%',
+      maxWidth: '1200px',
+      margin: '0 auto',
     }}>
       {tests.map(test => (
-        <TestCard key={test.id} {...test} />
+        <div key={test.id} style={{ width: '100%', maxWidth: '340px' }}>
+          <TestCard {...test} />
+        </div>
       ))}
     </div>
   );
