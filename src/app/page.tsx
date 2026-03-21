@@ -24,10 +24,10 @@ export default async function HomePage() {
           SMART TEST HUB
         </span>
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15, marginBottom: '14px', letterSpacing: '-0.02em' }}>
-          Тестийг сонго
+          Тестээ сонгоод үргэлжлүүлээрэй.
         </h1>
         <p style={{ color: '#64748b', fontSize: '1rem', lineHeight: 1.7 }}>
-          Шинжлэх ухааны үндэслэлтэй тестүүдээр өөрийгөө болон хайртай хүмүүсээ илүү сайн ойлго.
+          Шинжлэх ухааны үндэслэлтэй тестүүд.
         </p>
       </div>
 
