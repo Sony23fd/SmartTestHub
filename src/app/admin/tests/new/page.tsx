@@ -52,6 +52,7 @@ export default function NewTestPage() {
   const [slug, setSlug] = useState("");
   const [price, setPrice] = useState(0);
   const [order, setOrder] = useState(0);
+  const [icon, setIcon] = useState("Brain");
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<ScoringRule[]>([
     { min: 0, max: 7, resultText: "", status: "GOOD" },
@@ -81,7 +82,7 @@ export default function NewTestPage() {
       const res = await fetch("/api/admin/tests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, slug, price: Number(price), order: Number(order), description, scoringRules: rules }),
+        body: JSON.stringify({ title, slug, price: Number(price), order: Number(order), icon, description, scoringRules: rules }),
       });
       const data = await res.json();
       if (data.success) {
@@ -122,9 +123,34 @@ export default function NewTestPage() {
                 <label style={labelStyle}>Үнэ (₮)</label>
                 <input style={inputStyle} type="number" value={price} onChange={e => setPrice(Number(e.target.value))} min={0} />
               </div>
-              <div>
-                <label style={labelStyle}>Дараалал (Эрэмбэ)</label>
-                <input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} placeholder="Бага тоотой нь эхэнд харагдана" />
+              <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Дараалал (Эрэмбэ)</label>
+                  <input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} placeholder="Бага тоотой нь эхэнд харагдана" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Icon (Зураг)</label>
+                  <select style={inputStyle} value={icon} onChange={e => setIcon(e.target.value)}>
+                    <option value="Brain">Тархи (Brain)</option>
+                    <option value="Activity">Долгион (Activity)</option>
+                    <option value="Heart">Зүрх (Heart)</option>
+                    <option value="Smile">Инээмсэглэл (Smile)</option>
+                    <option value="Star">Од (Star)</option>
+                    <option value="Target">Бай (Target)</option>
+                    <option value="Users">Хүмүүс (Users)</option>
+                    <option value="Compass">Луужин (Compass)</option>
+                    <option value="Book">Ном (Book)</option>
+                    <option value="Award">Шагнал (Award)</option>
+                    <option value="Shield">Бамбай (Shield)</option>
+                    <option value="Zap">Эрчим (Zap)</option>
+                    <option value="Flame">Гал (Flame)</option>
+                    <option value="PieChart">Статистик (PieChart)</option>
+                    <option value="Lightbulb">Гэрэл (Lightbulb)</option>
+                    <option value="Code">Код (Code)</option>
+                    <option value="Coffee">Кофе (Coffee)</option>
+                    <option value="Briefcase">Ажил (Briefcase)</option>
+                  </select>
+                </div>
               </div>
               <div>
                 <label style={labelStyle}>Тайлбар</label>

@@ -13,6 +13,7 @@ export default async function HomePage() {
     slug: t.slug,
     title: t.title,
     price: t.price,
+    icon: t.icon || 'Brain',
     description: t.description || '',
   }));
 
@@ -21,7 +22,7 @@ export default async function HomePage() {
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '52px', maxWidth: '520px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-          <img src="/logo.png" alt="Smart Test Hub" style={{ width: '100%', maxWidth: '300px', height: 'auto', objectFit: 'contain' }} />
+          <img src="/logo.png" alt="Smart Test Hub" style={{ width: '100%', maxWidth: '176px', height: 'auto', objectFit: 'contain' }} />
         </div>
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15, marginBottom: '14px', letterSpacing: '-0.02em' }}>
           Тестээ сонгоод үргэлжлүүлээрэй.
@@ -41,8 +42,16 @@ export default async function HomePage() {
       )}
 
       {/* Footer */}
-      <div style={{ marginTop: 60, color: '#334155', fontSize: '0.8rem' }}>
-        © 2026 Smart Test Hub
+      <div style={{ marginTop: 60, color: '#334155', fontSize: '0.8rem', display: 'flex', gap: '4px', alignItems: 'center' }}>
+        <span>© 2026 Хөгжүүлсэн:</span>
+        <a 
+          href="https://www.facebook.com/engiineeer" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          style={{ color: '#7c9eff', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }}
+        >
+          Engiineer
+        </a>
       </div>
     </main>
   );

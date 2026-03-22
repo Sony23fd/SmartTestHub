@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Brain } from "lucide-react";
+import { ArrowRight, Brain, Activity, Heart, Smile, Star, Target, Users, Compass, Book, Award, Shield, Zap, Flame, PieChart, Lightbulb, Code, Coffee, Briefcase } from "lucide-react";
+
+export const iconMap: Record<string, any> = {
+  Brain, Activity, Heart, Smile, Star, Target, Users, Compass, Book, Award, Shield, Zap, Flame, PieChart, Lightbulb, Code, Coffee, Briefcase
+};
 import { useState } from "react";
 
 interface TestCardProps {
@@ -9,11 +13,13 @@ interface TestCardProps {
   slug: string;
   title: string;
   price: number;
+  icon?: string;
   description?: string;
 }
 
-function TestCard({ id, slug, title, price, description }: TestCardProps) {
+function TestCard({ id, slug, title, price, icon, description }: TestCardProps) {
   const [hovered, setHovered] = useState(false);
+  const IconComp = iconMap[icon || 'Brain'] || Brain;
 
   return (
     <Link href={`/test/${slug}`} style={{ textDecoration: 'none' }}>
@@ -44,7 +50,7 @@ function TestCard({ id, slug, title, price, description }: TestCardProps) {
             marginBottom: '18px',
           }}
         >
-          <Brain size={20} color="#7c9eff" />
+          <IconComp size={20} color="#7c9eff" />
         </div>
 
         {/* Price badge */}

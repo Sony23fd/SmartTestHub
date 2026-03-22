@@ -2,7 +2,9 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { Test } from "@/models/Test";
 import { Question } from "@/models/Question";
 import Link from "next/link";
-import { ArrowLeft, Clock, FileQuestion, ArrowRight, Brain } from "lucide-react";
+import { ArrowLeft, Clock, FileQuestion, ArrowRight, Brain, Activity, Heart, Smile, Star, Target, Users, Compass, Book, Award, Shield, Zap, Flame, PieChart, Lightbulb, Code, Coffee, Briefcase } from "lucide-react";
+
+const iconMap: Record<string, any> = { Brain, Activity, Heart, Smile, Star, Target, Users, Compass, Book, Award, Shield, Zap, Flame, PieChart, Lightbulb, Code, Coffee, Briefcase };
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -23,6 +25,7 @@ export default async function TestPreviewPage({ params }: Props) {
     );
   }
 
+  const IconComp = iconMap[test.icon || 'Brain'] || Brain;
   const questionCount = await Question.countDocuments({ testId: test._id });
 
   return (
@@ -44,7 +47,7 @@ export default async function TestPreviewPage({ params }: Props) {
           {/* Icon */}
           <div style={{ display:'flex', justifyContent:'center', marginBottom:'20px' }}>
             <div style={{ width:56, height:56, borderRadius:'16px', background:'rgba(124,158,255,0.12)', border:'1px solid rgba(124,158,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Brain size={28} color="#7c9eff" />
+              <IconComp size={28} color="#7c9eff" />
             </div>
           </div>
 

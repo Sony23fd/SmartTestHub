@@ -29,6 +29,7 @@ export default function EditTestPage() {
   const [slug, setSlug] = useState("");
   const [price, setPrice] = useState(0);
   const [order, setOrder] = useState(0);
+  const [icon, setIcon] = useState("Brain");
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<ScoringRule[]>([]);
 
@@ -42,6 +43,7 @@ export default function EditTestPage() {
           setSlug(t.slug);
           setPrice(t.price || 0);
           setOrder(t.order || 0);
+          setIcon(t.icon || "Brain");
           setDescription(t.description || "");
           setRules(t.scoringRules || []);
         }
@@ -63,7 +65,7 @@ export default function EditTestPage() {
       const res = await fetch(`/api/admin/tests/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, slug, price: Number(price), order: Number(order), description, scoringRules: rules }),
+        body: JSON.stringify({ title, slug, price: Number(price), order: Number(order), icon, description, scoringRules: rules }),
       });
       const data = await res.json();
       if (data.success) router.push("/admin");
@@ -97,7 +99,21 @@ export default function EditTestPage() {
               <div><label style={labelStyle}>Гарчиг *</label><input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} required /></div>
               <div><label style={labelStyle}>Slug (URL) *</label><input style={inputStyle} value={slug} onChange={e => setSlug(e.target.value)} required /></div>
               <div><label style={labelStyle}>Үнэ (₮)</label><input style={inputStyle} type="number" value={price} onChange={e => setPrice(Number(e.target.value))} min={0} /></div>
-              <div><label style={labelStyle}>Дараалал</label><input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} /></div>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ flex: 1 }}><label style={labelStyle}>Дараалал</label><input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} /></div>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>Icon</label>
+                  <select style={inputStyle} value={icon} onChange={e => setIcon(e.target.value)}>
+                    <option value="Brain">Тархи</option><option value="Activity">Долгион</option><option value="Heart">Зүрх</option>
+                    <option value="Smile">Инээмсэглэл</option><option value="Star">Од</option><option value="Target">Бай</option>
+                    <option value="Users">Хүмүүс</option>
+                    <option value="Compass">Луужин</option><option value="Book">Ном</option><option value="Award">Шагнал</option>
+                    <option value="Shield">Бамбай</option><option value="Zap">Эрчим</option><option value="Flame">Гал</option>
+                    <option value="PieChart">Статистик</option><option value="Lightbulb">Гэрэл</option><option value="Code">Код</option>
+                    <option value="Coffee">Кофе</option><option value="Briefcase">Ажил</option>
+                  </select>
+                </div>
+              </div>
               <div><label style={labelStyle}>Тайлбар</label><textarea style={{ ...inputStyle, minHeight:"80px", resize:"vertical" }} value={description} onChange={e => setDescription(e.target.value)} /></div>
             </div>
           </div>
