@@ -54,7 +54,7 @@ function TestCard({ id, slug, title, price, description }: TestCardProps) {
             background: 'rgba(124,158,255,0.12)',
             padding: '3px 10px', borderRadius: '100px', letterSpacing: '0.05em',
           }}>
-            {price === 0 ? 'ҮНЭГҮЙ' : `${price.toLocaleString()} ₮`}
+            {price === 0 ? 'ҮНЭГҮЙ' : `${price.toLocaleString('en-US')} ₮`}
           </span>
         </div>
 

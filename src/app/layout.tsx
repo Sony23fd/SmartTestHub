@@ -20,6 +20,9 @@ export default function RootLayout({
         {/* Animated Background Layers */}
         <div className="stars" aria-hidden="true" />
         <div className="nebula" aria-hidden="true" />
+        <div className="shooting-star" aria-hidden="true" />
+        <div className="shooting-star shooting-star-2" aria-hidden="true" />
+        <div className="shooting-star shooting-star-3" aria-hidden="true" />
         
         {/* Page content sits above background */}
         <div style={{ position: 'relative', zIndex: 1 }}>

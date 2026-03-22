@@ -6,7 +6,7 @@ export const revalidate = 0;
 
 export default async function HomePage() {
   await connectToDatabase();
-  const tests = await Test.find().sort({ createdAt: -1 }).lean();
+  const tests = await Test.find().sort({ order: 1, createdAt: -1 }).lean();
 
   const serialized = tests.map((t: any) => ({
     id: t._id.toString(),
@@ -20,9 +20,9 @@ export default async function HomePage() {
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>
       {/* Header */}
       <div style={{ textAlign: 'center', marginBottom: '52px', maxWidth: '520px' }}>
-        <span style={{ display: 'inline-block', fontSize: '10px', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'uppercase', color: '#475569', marginBottom: '16px' }}>
-          SMART TEST HUB
-        </span>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+          <img src="/logo.png" alt="Smart Test Hub" style={{ width: '100%', maxWidth: '300px', height: 'auto', objectFit: 'contain' }} />
+        </div>
         <h1 style={{ fontSize: 'clamp(2rem, 5vw, 3rem)', fontWeight: 800, color: '#ffffff', lineHeight: 1.15, marginBottom: '14px', letterSpacing: '-0.02em' }}>
           Тестээ сонгоод үргэлжлүүлээрэй.
         </h1>

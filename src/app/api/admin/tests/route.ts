@@ -6,7 +6,7 @@ import { Submission } from "@/models/Submission";
 // GET: List all tests with submission counts
 export async function GET() {
   await connectToDatabase();
-  const tests = await Test.find().sort({ createdAt: -1 }).lean();
+  const tests = await Test.find().sort({ order: 1, createdAt: -1 }).lean();
   
   const testsWithStats = await Promise.all(
     tests.map(async (test: any) => {

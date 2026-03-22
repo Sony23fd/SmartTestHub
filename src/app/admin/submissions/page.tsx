@@ -101,7 +101,7 @@ export default function SubmissionsPage() {
                     <span style={{ fontSize: "0.8rem", color: "#64748b" }}>Оноо: <strong style={{ color: "#e2e8f0" }}>{sub.totalScore}</strong></span>
                     <span style={{ fontSize: "0.8rem", color: "#64748b" }}>Дүгнэлт: <strong style={{ color: "#e2e8f0" }}>{sub.resultStatus}</strong></span>
                     <span style={{ fontSize: "0.8rem", color: "#475569", display: "flex", alignItems: "center", gap: "4px" }}>
-                      <Clock size={12} /> {new Date(sub.createdAt).toLocaleString("mn-MN")}
+                      <Clock size={12} /> <span suppressHydrationWarning>{new Date(sub.createdAt).toLocaleString("mn-MN")}</span>
                     </span>
                   </div>
                 </div>

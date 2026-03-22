@@ -28,6 +28,7 @@ export default function EditTestPage() {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [price, setPrice] = useState(0);
+  const [order, setOrder] = useState(0);
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<ScoringRule[]>([]);
 
@@ -40,6 +41,7 @@ export default function EditTestPage() {
           setTitle(t.title);
           setSlug(t.slug);
           setPrice(t.price || 0);
+          setOrder(t.order || 0);
           setDescription(t.description || "");
           setRules(t.scoringRules || []);
         }
@@ -61,7 +63,7 @@ export default function EditTestPage() {
       const res = await fetch(`/api/admin/tests/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, slug, price: Number(price), description, scoringRules: rules }),
+        body: JSON.stringify({ title, slug, price: Number(price), order: Number(order), description, scoringRules: rules }),
       });
       const data = await res.json();
       if (data.success) router.push("/admin");
@@ -95,6 +97,7 @@ export default function EditTestPage() {
               <div><label style={labelStyle}>Гарчиг *</label><input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} required /></div>
               <div><label style={labelStyle}>Slug (URL) *</label><input style={inputStyle} value={slug} onChange={e => setSlug(e.target.value)} required /></div>
               <div><label style={labelStyle}>Үнэ (₮)</label><input style={inputStyle} type="number" value={price} onChange={e => setPrice(Number(e.target.value))} min={0} /></div>
+              <div><label style={labelStyle}>Дараалал</label><input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} /></div>
               <div><label style={labelStyle}>Тайлбар</label><textarea style={{ ...inputStyle, minHeight:"80px", resize:"vertical" }} value={description} onChange={e => setDescription(e.target.value)} /></div>
             </div>
           </div>

@@ -23,6 +23,7 @@ export interface ITest extends Document {
   title: string;
   slug: string;
   price: number;
+  order: number;
   description?: string;
   scoringRules: IScoringRule[];
   createdAt: Date;
@@ -34,6 +35,7 @@ const TestSchema = new Schema<ITest>(
     title: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
     price: { type: Number, required: true, min: 0 },
+    order: { type: Number, default: 0 },
     description: { type: String, default: '' },
     scoringRules: { type: [ScoringRuleSchema], default: [] },
   },

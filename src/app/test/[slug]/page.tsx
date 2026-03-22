@@ -51,7 +51,7 @@ export default async function TestPreviewPage({ params }: Props) {
           {/* Price */}
           <div style={{ textAlign:'center', marginBottom:'12px' }}>
             <span style={{ fontSize:'11px', fontWeight:600, color:'#7c9eff', background:'rgba(124,158,255,0.12)', padding:'4px 12px', borderRadius:'100px' }}>
-              {test.price === 0 ? 'ҮНЭГҮЙ' : `${test.price.toLocaleString()} ₮`}
+              {test.price === 0 ? 'ҮНЭГҮЙ' : `${test.price.toLocaleString('en-US')} ₮`}
             </span>
           </div>
 

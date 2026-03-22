@@ -51,6 +51,7 @@ export default function NewTestPage() {
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
   const [price, setPrice] = useState(0);
+  const [order, setOrder] = useState(0);
   const [description, setDescription] = useState("");
   const [rules, setRules] = useState<ScoringRule[]>([
     { min: 0, max: 7, resultText: "", status: "GOOD" },
@@ -80,7 +81,7 @@ export default function NewTestPage() {
       const res = await fetch("/api/admin/tests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, slug, price: Number(price), description, scoringRules: rules }),
+        body: JSON.stringify({ title, slug, price: Number(price), order: Number(order), description, scoringRules: rules }),
       });
       const data = await res.json();
       if (data.success) {
@@ -120,6 +121,10 @@ export default function NewTestPage() {
               <div>
                 <label style={labelStyle}>Үнэ (₮)</label>
                 <input style={inputStyle} type="number" value={price} onChange={e => setPrice(Number(e.target.value))} min={0} />
+              </div>
+              <div>
+                <label style={labelStyle}>Дараалал (Эрэмбэ)</label>
+                <input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} placeholder="Бага тоотой нь эхэнд харагдана" />
               </div>
               <div>
                 <label style={labelStyle}>Тайлбар</label>

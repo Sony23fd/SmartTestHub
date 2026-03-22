@@ -47,6 +47,7 @@ export default function AdminDashboard() {
 
   const totalSubs = tests.reduce((s, t) => s + t.submissionCount, 0);
   const totalPaid = tests.reduce((s, t) => s + t.paidCount, 0);
+  const totalEarnings = tests.reduce((s, t) => s + (t.paidCount * t.price), 0);
 
   return (
     <div style={{ minHeight: "100vh", padding: "32px 20px" }}>
@@ -76,8 +77,9 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "28px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", marginBottom: "28px" }}>
           {[
+            { label: "Нийт орлого", value: `${totalEarnings.toLocaleString('en-US')} ₮`, icon: <BarChart3 size={20} color="#60a5fa" /> },
             { label: "Нийт тест", value: tests.length, icon: <Brain size={20} color="#7c9eff" /> },
             { label: "Нийт оролдлого", value: totalSubs, icon: <BarChart3 size={20} color="#86efac" /> },
             { label: "Төлөгдсөн", value: totalPaid, icon: <BarChart3 size={20} color="#fde68a" /> },
@@ -126,7 +128,7 @@ export default function AdminDashboard() {
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
                       <span style={{ fontWeight: 600, color: "#ffffff", fontSize: "0.95rem" }}>{test.title}</span>
                       <span style={{ fontSize: "11px", color: "#7c9eff", background: "rgba(124,158,255,0.1)", padding: "2px 8px", borderRadius: "100px", fontWeight: 600 }}>
-                        {test.price === 0 ? "ҮНЭГҮЙ" : `${test.price.toLocaleString()}₮`}
+                        {test.price === 0 ? "ҮНЭГҮЙ" : `${test.price.toLocaleString('en-US')}₮`}
                       </span>
                     </div>
                     <div style={{ display: "flex", gap: "16px" }}>
