@@ -24,6 +24,9 @@ export default function RootLayout({
           <div className="shooting-star star-1" />
           <div className="shooting-star star-2" />
           <div className="shooting-star star-3" />
+          <div className="shooting-star star-4" />
+          <div className="shooting-star star-5" />
+          <div className="shooting-star star-6" />
         </div>
         
         {/* Page content sits above background */}

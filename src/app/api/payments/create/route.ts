@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongoose';
 import { Submission } from '@/models/Submission';
 import { Test } from '@/models/Test';
+import { AppSetting } from '@/models/AppSetting';
 import { createQPayInvoice } from '@/lib/qpay';
 
 /**
@@ -39,6 +40,21 @@ export async function POST(req: NextRequest) {
         const price = testContent.price;
         if (price === 0) {
             return NextResponse.json({ success: false, error: 'This test is free.' }, { status: 400 });
+        }
+
+        const setting = await AppSetting.findOne() || { qpayEnabled: true, bankName: '', bankAccountNumber: '', bankAccountName: '' };
+        
+        if (!setting.qpayEnabled) {
+            return NextResponse.json({
+                success: false,
+                qpayDisabled: true,
+                bankInfo: {
+                    price: price,
+                    name: setting.bankName,
+                    account: setting.bankAccountNumber,
+                    accountName: setting.bankAccountName
+                }
+            });
         }
 
         // Create QPay Invoice via helper

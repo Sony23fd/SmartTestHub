@@ -14,6 +14,7 @@ interface QPayData {
 export default function PaymentClient({ submissionId }: { submissionId: string }) {
   const router = useRouter();
   const [qpayData, setQpayData] = useState<QPayData | null>(null);
+  const [manualInfo, setManualInfo] = useState<{ price: number; name: string; account: string; accountName: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -28,6 +29,8 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
         const data = await res.json();
         if (data.success) {
           setQpayData(data.data);
+        } else if (data.qpayDisabled) {
+          setManualInfo(data.bankInfo);
         } else {
           if (data.error?.includes("already completed") || data.error?.includes("free")) {
             router.push(`/submission/${submissionId}/result`);
@@ -45,7 +48,7 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
   }, [submissionId, router]);
 
   useEffect(() => {
-    if (!qpayData) return;
+    if (!qpayData && !manualInfo) return;
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`/api/results/${submissionId}`);
@@ -57,7 +60,7 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
       } catch {}
     }, 3000);
     return () => clearInterval(interval);
-  }, [qpayData, submissionId, router]);
+  }, [qpayData, manualInfo, submissionId, router]);
 
   if (loading) {
     return (
@@ -108,6 +111,31 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
               alt="QPay QR"
               style={{ width:180, height:180, borderRadius:'12px', background:'#ffffff', padding:'8px', margin:'0 auto', display:'block' }}
             />
+          </div>
+        )}
+
+        {manualInfo && (
+          <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:'16px', padding:'24px', marginBottom:'24px', textAlign:'left' }}>
+            <h3 style={{ color: "#fde68a", fontSize: "1rem", fontWeight: 700, marginBottom: "16px", textAlign: "center" }}>Дансаар шилжүүлэх</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ color: "#64748b", fontSize: "0.85rem" }}>Банк:</span>
+              <span style={{ color: "#ffffff", fontWeight: 600 }}>{manualInfo.name}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ color: "#64748b", fontSize: "0.85rem" }}>Данс:</span>
+              <span style={{ color: "#ffffff", fontWeight: 600 }}>{manualInfo.account}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ color: "#64748b", fontSize: "0.85rem" }}>Нэр:</span>
+              <span style={{ color: "#ffffff", fontWeight: 600 }}>{manualInfo.accountName}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "16px", borderBottom: "1px dashed rgba(255,255,255,0.1)" }}>
+              <span style={{ color: "#64748b", fontSize: "0.85rem" }}>Дүн:</span>
+              <span style={{ color: "#86efac", fontWeight: 700 }}>{manualInfo.price.toLocaleString('en-US')} ₮</span>
+            </div>
+            <p style={{ color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1.5, textAlign: "center" }}>
+              Гүйлгээний утга дээр <strong style={{ color: "#fff" }}>утасны дугаараа</strong> бичнэ үү. Төлбөр баталгаажмагц энэ хуудас автоматаар шинэчлэгдэх болно.
+            </p>
           </div>
         )}
 

@@ -45,4 +45,8 @@ const TestSchema = new Schema<ITest>(
 );
 
 // Prevent model re-registration during Next.js hot reload
-export const Test = models.Test || model<ITest>('Test', TestSchema);
+if (mongoose.models.Test) {
+  // Clear the cached model so HMR correctly applies the new schema (like 'icon' field)
+  delete mongoose.models.Test;
+}
+export const Test = model<ITest>('Test', TestSchema);

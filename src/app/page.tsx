@@ -42,11 +42,11 @@ export default async function HomePage() {
       )}
 
       {/* Footer */}
-      <div style={{ marginTop: 60, color: '#334155', fontSize: '0.8rem', display: 'flex', gap: '4px', alignItems: 'center' }}>
+      <div style={{ marginTop: 60, color: '#9ba8b9ff', fontSize: '0.8rem', display: 'flex', gap: '4px', alignItems: 'center' }}>
         <span>© 2026 Хөгжүүлсэн:</span>
-        <a 
-          href="https://www.facebook.com/engiineeer" 
-          target="_blank" 
+        <a
+          href="https://www.facebook.com/engiineeer"
+          target="_blank"
           rel="noopener noreferrer"
           style={{ color: '#7c9eff', textDecoration: 'none', fontWeight: 600, transition: 'color 0.2s' }}
         >

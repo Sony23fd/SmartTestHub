@@ -3,6 +3,8 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { Test } from "@/models/Test";
 import { Submission } from "@/models/Submission";
 
+export const dynamic = 'force-dynamic';
+
 // GET: List all tests with submission counts
 export async function GET() {
   await connectToDatabase();

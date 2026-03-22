@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, PlusCircle, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, PlusCircle, Trash2, Save, Loader2, CheckCircle } from "lucide-react";
+import { iconMap } from "@/app/TestGrid";
 
 interface ScoringRule {
   min: number;
@@ -129,27 +130,29 @@ export default function NewTestPage() {
                   <input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} placeholder="Бага тоотой нь эхэнд харагдана" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Icon (Зураг)</label>
-                  <select style={inputStyle} value={icon} onChange={e => setIcon(e.target.value)}>
-                    <option value="Brain">Тархи (Brain)</option>
-                    <option value="Activity">Долгион (Activity)</option>
-                    <option value="Heart">Зүрх (Heart)</option>
-                    <option value="Smile">Инээмсэглэл (Smile)</option>
-                    <option value="Star">Од (Star)</option>
-                    <option value="Target">Бай (Target)</option>
-                    <option value="Users">Хүмүүс (Users)</option>
-                    <option value="Compass">Луужин (Compass)</option>
-                    <option value="Book">Ном (Book)</option>
-                    <option value="Award">Шагнал (Award)</option>
-                    <option value="Shield">Бамбай (Shield)</option>
-                    <option value="Zap">Эрчим (Zap)</option>
-                    <option value="Flame">Гал (Flame)</option>
-                    <option value="PieChart">Статистик (PieChart)</option>
-                    <option value="Lightbulb">Гэрэл (Lightbulb)</option>
-                    <option value="Code">Код (Code)</option>
-                    <option value="Coffee">Кофе (Coffee)</option>
-                    <option value="Briefcase">Ажил (Briefcase)</option>
-                  </select>
+                  <label style={labelStyle}>Icon (Зураг Сонгох)</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px", background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    {Object.keys(iconMap).map(key => {
+                      const Icon = iconMap[key];
+                      const isSelected = icon === key;
+                      return (
+                        <div
+                          key={key}
+                          onClick={() => setIcon(key)}
+                          style={{
+                            padding: "8px", borderRadius: "8px",
+                            border: isSelected ? "2px solid #7c9eff" : "1px solid transparent",
+                            background: isSelected ? "rgba(124,158,255,0.15)" : "transparent",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", transition: "all 0.2s"
+                          }}
+                          title={key}
+                        >
+                          <Icon size={20} color={isSelected ? "#ffffff" : "#64748b"} />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <div>

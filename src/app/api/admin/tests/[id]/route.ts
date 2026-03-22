@@ -4,6 +4,8 @@ import { Test } from "@/models/Test";
 import { Question } from "@/models/Question";
 import mongoose from "mongoose";
 
+export const dynamic = 'force-dynamic';
+
 interface Params { params: Promise<{ id: string }> }
 
 // GET: Single test

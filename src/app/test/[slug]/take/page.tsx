@@ -37,6 +37,7 @@ export default async function TakeTestPage({ params }: Props) {
   const serializedTest = {
     _id: test._id.toString(),
     title: test.title,
+    icon: test.icon || 'Brain',
   };
 
   const serializedQuestions = questions.map((q: any) => ({

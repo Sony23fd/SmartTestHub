@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, PlusCircle, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, CheckCircle, Trash2, PlusCircle } from "lucide-react";
+import { iconMap } from "@/app/TestGrid";
 
 interface ScoringRule {
   min: number;
@@ -90,7 +91,12 @@ export default function EditTestPage() {
         <Link href="/admin" style={{ display:"inline-flex", alignItems:"center", gap:"8px", color:"#64748b", textDecoration:"none", fontSize:"0.875rem", marginBottom:"28px" }}>
           <ArrowLeft size={16} /> Буцах
         </Link>
-        <h1 style={{ fontSize:"1.6rem", fontWeight:800, color:"#ffffff", marginBottom:"28px", letterSpacing:"-0.02em" }}>Тест засах</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
+          <h1 style={{ fontSize:"1.6rem", fontWeight:800, color:"#ffffff", letterSpacing:"-0.02em" }}>Тест засах</h1>
+          <button type="button" onClick={handleSubmit} disabled={saving} style={{ padding:"10px 20px", borderRadius:"12px", background:saving ? "rgba(255,255,255,0.1)" : "#ffffff", color:saving ? "#475569" : "#0a0d17", fontWeight:700, fontSize:"0.9rem", border:"none", cursor:saving ? "not-allowed" : "pointer", display:"flex", alignItems:"center", gap:"8px" }}>
+            {saving ? <Loader2 size={16} style={{ animation:"spin 1s linear infinite" }} /> : <Save size={16} />} Хадгалах
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:"20px" }}>
           <div style={card}>
@@ -102,16 +108,29 @@ export default function EditTestPage() {
               <div style={{ display: "flex", gap: "10px" }}>
                 <div style={{ flex: 1 }}><label style={labelStyle}>Дараалал</label><input style={inputStyle} type="number" value={order} onChange={e => setOrder(Number(e.target.value))} /></div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Icon</label>
-                  <select style={inputStyle} value={icon} onChange={e => setIcon(e.target.value)}>
-                    <option value="Brain">Тархи</option><option value="Activity">Долгион</option><option value="Heart">Зүрх</option>
-                    <option value="Smile">Инээмсэглэл</option><option value="Star">Од</option><option value="Target">Бай</option>
-                    <option value="Users">Хүмүүс</option>
-                    <option value="Compass">Луужин</option><option value="Book">Ном</option><option value="Award">Шагнал</option>
-                    <option value="Shield">Бамбай</option><option value="Zap">Эрчим</option><option value="Flame">Гал</option>
-                    <option value="PieChart">Статистик</option><option value="Lightbulb">Гэрэл</option><option value="Code">Код</option>
-                    <option value="Coffee">Кофе</option><option value="Briefcase">Ажил</option>
-                  </select>
+                  <label style={labelStyle}>Icon (Зураг)</label>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px", background: "rgba(255,255,255,0.02)", padding: "12px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    {Object.keys(iconMap).map(key => {
+                      const Icon = iconMap[key];
+                      const isSelected = icon === key;
+                      return (
+                        <div
+                          key={key}
+                          onClick={() => setIcon(key)}
+                          style={{
+                            padding: "8px", borderRadius: "8px",
+                            border: isSelected ? "2px solid #7c9eff" : "1px solid transparent",
+                            background: isSelected ? "rgba(124,158,255,0.15)" : "transparent",
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            cursor: "pointer", transition: "all 0.2s"
+                          }}
+                          title={key}
+                        >
+                          <Icon size={20} color={isSelected ? "#ffffff" : "#64748b"} />
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <div><label style={labelStyle}>Тайлбар</label><textarea style={{ ...inputStyle, minHeight:"80px", resize:"vertical" }} value={description} onChange={e => setDescription(e.target.value)} /></div>

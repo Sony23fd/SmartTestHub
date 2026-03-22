@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Award, ChevronLeft, Loader2, Sparkles } from "lucide-react";
+import { ChevronLeft, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { iconMap } from "@/app/TestGrid";
 
 interface ResultData {
   submissionId: string;
-  test: { title: string; slug: string };
+  test: { title: string; slug: string; icon?: string };
   totalScore: number;
   resultText: string;
   resultStatus: string;
@@ -68,6 +69,8 @@ export default function ResultClient({ submissionId }: { submissionId: string })
   const accentBorder = isGood ? 'rgba(134,239,172,0.2)' : isAverage ? 'rgba(253,230,138,0.2)' : 'rgba(252,165,165,0.2)';
   const accentGlow = isGood ? 'rgba(134,239,172,0.08)' : isAverage ? 'rgba(253,230,138,0.08)' : 'rgba(252,165,165,0.08)';
 
+  const IconComp = iconMap[data.test.icon || 'Brain'] || iconMap['Brain'];
+
   return (
     <main style={{ minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'40px 20px' }}>
       <motion.div
@@ -84,7 +87,7 @@ export default function ResultClient({ submissionId }: { submissionId: string })
             transition={{ delay: 0.3, type:'spring', stiffness:200 }}
             style={{ width:72, height:72, borderRadius:'20px', background:accentBg, border:`1px solid ${accentBorder}`, display:'inline-flex', alignItems:'center', justifyContent:'center', marginBottom:'20px' }}
           >
-            <Award size={36} color={accentColor} />
+            <IconComp size={36} color={accentColor} />
           </motion.div>
 
           <div style={{ fontSize:'10px', fontWeight:700, letterSpacing:'0.2em', textTransform:'uppercase', color:'#475569', marginBottom:'8px' }}>

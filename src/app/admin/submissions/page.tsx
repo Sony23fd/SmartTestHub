@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Loader2, CheckCircle, Clock, ExternalLink, Search } from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, CheckCircle, Clock, ExternalLink, Search, CheckCircle2 } from "lucide-react";
 
 interface SubmissionItem {
   _id: string;
@@ -28,6 +28,7 @@ export default function SubmissionsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const fetchSubmissions = async () => {
     try {
@@ -47,6 +48,14 @@ export default function SubmissionsPage() {
     await fetch(`/api/admin/submissions?id=${id}`, { method: "DELETE" });
     await fetchSubmissions();
     setDeletingId(null);
+  };
+
+  const handleApprove = async (id: string) => {
+    if (!confirm("Төлбөр шилжсэн гэж үзэж үр дүнг хэрэглэгчид илгээх үү?")) return;
+    setApprovingId(id);
+    await fetch(`/api/admin/submissions/${id}/approve`, { method: "POST" });
+    await fetchSubmissions();
+    setApprovingId(null);
   };
 
   const filtered = submissions.filter(s => 
@@ -112,6 +121,16 @@ export default function SubmissionsPage() {
                       <ExternalLink size={14} /> Үзэх
                     </button>
                   </Link>
+                  {sub.paymentStatus === "PENDING" && (
+                    <button 
+                      onClick={() => handleApprove(sub._id)}
+                      disabled={approvingId === sub._id}
+                      style={{ padding: "8px", borderRadius: "10px", background: "rgba(134,239,172,0.08)", border: "1px solid rgba(134,239,172,0.15)", color: "#86efac", cursor: "pointer" }}
+                      title="Төлбөр батлах"
+                    >
+                      {approvingId === sub._id ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <CheckCircle2 size={16} />}
+                    </button>
+                  )}
                   <button 
                     onClick={() => handleDelete(sub._id)}
                     disabled={deletingId === sub._id}

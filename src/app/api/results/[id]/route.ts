@@ -15,7 +15,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
         await connectToDatabase();
         const { id } = await params;
 
-        const submission = await Submission.findById(id).populate('testId', 'title slug price');
+        const submission = await Submission.findById(id).populate('testId', 'title slug price icon');
 
         if (!submission) {
             return NextResponse.json({ success: false, error: 'Submission not found' }, { status: 404 });

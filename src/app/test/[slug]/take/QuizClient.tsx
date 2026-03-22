@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronRight, ArrowLeft, Brain } from "lucide-react";
+import { ChevronRight, ArrowLeft } from "lucide-react";
+import { iconMap } from "@/app/TestGrid";
 
 interface Option {
   text: string;
@@ -19,6 +20,7 @@ interface Question {
 interface TestData {
   _id: string;
   title: string;
+  icon?: string;
 }
 
 export default function QuizClient({ test, questions }: { test: TestData; questions: Question[] }) {
@@ -31,6 +33,7 @@ export default function QuizClient({ test, questions }: { test: TestData; questi
 
   const currentQuestion = questions[currentIndex];
   const progressPercent = Math.round(((currentIndex) / questions.length) * 100);
+  const IconComp = iconMap[test.icon || 'Brain'] || iconMap['Brain'];
 
   const handleNext = async () => {
     if (selectedOption === null) return;
@@ -120,7 +123,7 @@ export default function QuizClient({ test, questions }: { test: TestData; questi
                 <div style={{ background:'rgba(15,23,42,0.85)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'36px', boxShadow:'0 0 60px rgba(124,158,255,0.05)' }}>
                   {/* Icon */}
                   <div style={{ width:40, height:40, borderRadius:'10px', background:'rgba(124,158,255,0.1)', border:'1px solid rgba(124,158,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'20px' }}>
-                    <Brain size={18} color="#7c9eff" />
+                    <IconComp size={18} color="#7c9eff" />
                   </div>
 
                   <h2 style={{ fontSize:'1.2rem', fontWeight:700, color:'#ffffff', lineHeight:1.5, marginBottom:'28px' }}>
