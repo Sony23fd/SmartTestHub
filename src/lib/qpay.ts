@@ -3,17 +3,16 @@ const BASE_URL = QPAY_ENV === 'production'
   ? 'https://merchant.qpay.mn/v2' 
   : 'https://consumer.qpay.mn/v2'; // or correct sandbox URL depending on QPay documentation (e.g., test.qpay.mn)
 
-// Global cache for the token to avoid re-requesting for every invoice
-let cachedToken: string | null = null;
-let tokenExpiresAt: number | null = null;
+import { QPayToken } from '@/models/QPayToken';
 
 /**
  * Get QPay Authentication Token
  */
 export async function getQPayToken(): Promise<string> {
-    // Check if token is cached and not expired
-    if (cachedToken && tokenExpiresAt && Date.now() < tokenExpiresAt) {
-        return cachedToken;
+    // Check if token is cached in the DB and not expired
+    const doc = await QPayToken.findOne();
+    if (doc && doc.expiresAt && Date.now() < doc.expiresAt) {
+        return doc.token;
     }
 
     const username = process.env.QPAY_USERNAME;
@@ -32,7 +31,7 @@ export async function getQPayToken(): Promise<string> {
             'Authorization': `Basic ${basicAuth}`,
         },
         body: JSON.stringify({
-            client_id: username, // Client ID is often mapped to username in QPay Basic Auth
+            client_id: username, 
         }),
     });
 
@@ -44,10 +43,17 @@ export async function getQPayToken(): Promise<string> {
     const data = await response.json();
     
     // Save token and expiry (refreshing 60 seconds before it officially expires for safety)
-    cachedToken = data.access_token;
-    tokenExpiresAt = Date.now() + (data.expires_in - 60) * 1000;
+    const token = data.access_token;
+    const expiresAt = Date.now() + (data.expires_in - 60) * 1000;
 
-    return cachedToken as string;
+    // Upsert into our single DB document
+    await QPayToken.findOneAndUpdate(
+        {}, 
+        { token, expiresAt }, 
+        { upsert: true, new: true }
+    );
+
+    return token as string;
 }
 
 interface InvoiceResponse {

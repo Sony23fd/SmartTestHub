@@ -11,17 +11,36 @@ export async function POST(req: NextRequest) {
         await connectToDatabase();
         
         const body = await req.json();
+        const searchParams = req.nextUrl.searchParams;
         
-        // QPay usually sends something like { invoice_id, payment_id } depending on docs
-        // Fallback or exact params here. Assuming basic payload:
-        const { invoice_id, payment_id } = body;
+        // QPay v2 sends payment_id either in query string or body
+        const payment_id = 
+            body.payment_id || 
+            body.invoice_id || 
+            searchParams.get('payment_id') || 
+            searchParams.get('invoice_id');
 
-        if (!invoice_id) {
-            return NextResponse.json({ success: false, error: 'invoice_id is required' }, { status: 400 });
+        if (!payment_id) {
+            return NextResponse.json({ success: false, error: 'payment_id or invoice_id is required' }, { status: 400 });
         }
 
-        // Ideally, we'd verify payload signature or use the check Payment status API endpoint here with QPay using token again.
-        // E.g.: checkQPayPayment(payment_id || invoice_id)
+        // --- SECURITY VALIDATION --- //
+        // Call QPay's check API manually using our secure Token instead of trusting the incoming POST payload blindly
+        const { checkQPayPayment } = await import('@/lib/qpay');
+        const checkResult = await checkQPayPayment(payment_id);
+
+        if (!checkResult || !checkResult.rows || checkResult.count === 0) {
+            return NextResponse.json({ success: false, error: 'Payment record not found on QPay servers' }, { status: 404 });
+        }
+
+        // Ensure the payment status explicitly says PAID in QPay system
+        const isPaid = checkResult.rows.some((row: any) => row.payment_status === 'PAID');
+        if (!isPaid) {
+            return NextResponse.json({ success: false, error: 'Payment is not marked as PAID by QPay' }, { status: 400 });
+        }
+
+        // Ensure we retrieve the matched invoice_id
+        const invoice_id = checkResult.rows[0].invoice_id || payment_id;
 
         // Find Submission having this matching QPay invoice_id 
         // (saved previously during /api/payments/create)
@@ -36,7 +55,7 @@ export async function POST(req: NextRequest) {
         await submission.save();
 
         // Respond with OK so QPay marks notification as SUCCESS
-        return NextResponse.json({ success: true, message: 'Payment confirmed successfully' });
+        return NextResponse.json({ success: true, message: 'Payment confirmed securely' });
     } catch (err: any) {
         return NextResponse.json(
             { success: false, error: err.message },
