@@ -26,15 +26,19 @@ export async function GET(_req: NextRequest, { params }: Params) {
         if (submission.paymentStatus !== 'PAID' && test?.price !== 0) {
             // FALLBACK: If running locally or webhook failed, check QPay API manually
             if (submission.paymentId) {
-                const { checkQPayPayment } = await import('@/lib/qpay');
-                const checkResult = await checkQPayPayment(submission.paymentId);
-                
-                const isPaid = checkResult?.count > 0 && 
-                               checkResult?.rows?.some((r: any) => r.payment_status === 'PAID');
-                
-                if (isPaid) {
-                    submission.paymentStatus = 'PAID';
-                    await submission.save();
+                try {
+                    const { checkQPayPayment } = await import('@/lib/qpay');
+                    const checkResult = await checkQPayPayment(submission.paymentId);
+                    
+                    const isPaid = checkResult?.paid_amount > 0 || 
+                                   (checkResult?.count > 0 && checkResult?.rows?.some((r: any) => r.payment_status?.toUpperCase() === 'PAID'));
+                    
+                    if (isPaid) {
+                        submission.paymentStatus = 'PAID';
+                        await submission.save();
+                    }
+                } catch (err) {
+                    console.error('QPay API Fallback Check Error:', err);
                 }
             }
 

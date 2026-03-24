@@ -114,11 +114,11 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
             {qpayData.urls && qpayData.urls.length > 0 && (
               <div style={{ marginTop: '24px' }}>
                 <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '16px' }}>Эсвэл банкны апп-аараа шууд нэвтэрч төлөх:</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(70px, 1fr))', gap: '16px 8px' }}>
                   {qpayData.urls.map((app, i) => (
                     <a key={i} href={app.link} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', textDecoration: 'none', transition: 'transform 0.2s' }} onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
-                      <img src={app.logo} alt={app.name} style={{ width: 46, height: 46, borderRadius: '14px', background: '#fff', padding: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} />
-                      <span style={{ color: '#cbd5e1', fontSize: '0.65rem', textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{app.name}</span>
+                      <img src={app.logo} alt={app.name} style={{ width: 44, height: 44, borderRadius: '12px', background: '#fff', padding: '3px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }} />
+                      <span style={{ color: '#cbd5e1', fontSize: '0.65rem', textAlign: 'center', width: '100%', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.2' }}>{app.name}</span>
                     </a>
                   ))}
                 </div>
