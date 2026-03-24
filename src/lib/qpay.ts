@@ -1,7 +1,7 @@
 const QPAY_ENV = process.env.QPAY_ENV || 'sandbox';
 const BASE_URL = QPAY_ENV === 'production' 
   ? 'https://merchant.qpay.mn/v2' 
-  : 'https://consumer.qpay.mn/v2'; // or correct sandbox URL depending on QPay documentation (e.g., test.qpay.mn)
+  : 'https://merchant.qpay.mn/v2'; // Note: QPay differentiates by credentials, but if a distinct sandbox exists it's usually merchant-sandbox.qpay.mn
 
 import { QPayToken } from '@/models/QPayToken';
 
