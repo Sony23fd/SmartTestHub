@@ -24,14 +24,31 @@ export async function GET(_req: NextRequest, { params }: Params) {
         // Security Check: is the payment verified OR is the test free?
         const test = submission.testId as any;
         if (submission.paymentStatus !== 'PAID' && test?.price !== 0) {
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Payment required to view results',
-                    status: 'PENDING',
-                },
-                { status: 403 }
-            );
+            // FALLBACK: If running locally or webhook failed, check QPay API manually
+            if (submission.paymentId) {
+                const { checkQPayPayment } = await import('@/lib/qpay');
+                const checkResult = await checkQPayPayment(submission.paymentId);
+                
+                const isPaid = checkResult?.count > 0 && 
+                               checkResult?.rows?.some((r: any) => r.payment_status === 'PAID');
+                
+                if (isPaid) {
+                    submission.paymentStatus = 'PAID';
+                    await submission.save();
+                }
+            }
+
+            // If still not paid after double-checking, return error
+            if (submission.paymentStatus !== 'PAID') {
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: 'Payment required to view results',
+                        status: 'PENDING',
+                    },
+                    { status: 403 }
+                );
+            }
         }
 
         // Success: Payment verified, return secure results

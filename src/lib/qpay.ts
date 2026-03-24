@@ -22,17 +22,13 @@ export async function getQPayToken(): Promise<string> {
         throw new Error('QPAY_USERNAME and QPAY_PASSWORD are required');
     }
 
-    const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
+    const basicAuth = btoa(`${username}:${password}`);
 
     const response = await fetch(`${BASE_URL}/auth/token`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'Authorization': `Basic ${basicAuth}`,
-        },
-        body: JSON.stringify({
-            client_id: username, 
-        }),
+        }
     });
 
     if (!response.ok) {
@@ -83,13 +79,19 @@ export async function createQPayInvoice(
         throw new Error('QPAY_INVOICE_CODE is required');
     }
 
+    // Derive the most accurate deployed domain dynamically
+    const appDomain = process.env.NEXT_PUBLIC_BASE_URL 
+      || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
+      || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') 
+      || 'http://localhost:3000';
+
     const payload = {
         invoice_code: invoiceCode,
         sender_invoice_no: invoiceNo,
         invoice_receiver_code: process.env.QPAY_RECEIVER_CODE || 'terminal',
         invoice_description: description,
         amount: String(amount),
-        callback_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payments/webhook`,
+        callback_url: `${appDomain}/api/payments/webhook`,
     };
 
     const response = await fetch(`${BASE_URL}/invoice`, {
