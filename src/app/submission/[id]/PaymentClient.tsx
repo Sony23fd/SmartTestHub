@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { CheckCircle2, ShieldCheck, Loader2, QrCode } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Loader2, QrCode, Copy } from "lucide-react";
 
 interface QPayData {
   invoice_id: string;
@@ -17,6 +17,29 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
   const [manualInfo, setManualInfo] = useState<{ price: number; name: string; account: string; accountName: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isCopied, setIsCopied] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
+
+  const handleManualCheck = async () => {
+    setIsChecking(true);
+    try {
+      const res = await fetch(`/api/results/${submissionId}`);
+      const data = await res.json();
+      if (data.success) {
+        router.push(`/submission/${submissionId}/result`);
+      } else {
+        setTimeout(() => setIsChecking(false), 1500);
+      }
+    } catch {
+      setIsChecking(false);
+    }
+  };
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -49,17 +72,34 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
 
   useEffect(() => {
     if (!qpayData && !manualInfo) return;
-    const interval = setInterval(async () => {
+    
+    let timeoutId: NodeJS.Timeout;
+    let delay = 3500; // Start at 3.5s
+    let isActive = true;
+
+    const poll = async () => {
+      if (!isActive) return;
       try {
         const res = await fetch(`/api/results/${submissionId}`);
         const data = await res.json();
         if (data.success) {
-          clearInterval(interval);
           router.push(`/submission/${submissionId}/result`);
+          return; // Stop polling
         }
-      } catch {}
-    }, 3000);
-    return () => clearInterval(interval);
+      } catch (e) {
+        console.error("Polling error", e);
+      }
+      
+      // Exponential backoff: increase delay gradually, cap at 15 seconds
+      delay = Math.min(delay + 2000, 15000);
+      timeoutId = setTimeout(poll, delay);
+    };
+
+    timeoutId = setTimeout(poll, delay);
+    return () => {
+      isActive = false;
+      clearTimeout(timeoutId);
+    };
   }, [qpayData, manualInfo, submissionId, router]);
 
   if (loading) {
@@ -99,6 +139,17 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
           </div>
           <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#ffffff', marginBottom:'8px' }}>Таны хариу бэлэн!</h1>
           <p style={{ color:'#64748b', fontSize:'0.875rem', lineHeight:1.6 }}>Үр дүнгээ харахын тулд QR кодыг уншуулна уу.</p>
+        </div>
+
+        <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '16px', padding: '16px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: '#fde047', fontSize: '0.8rem', lineHeight: 1.5 }}>
+            <span style={{ fontSize: '1.2rem', marginTop: '-2px' }}>⚠️</span> 
+            <span>Та гар утаснаасаа банкны апп руу шилжих эсвэл хөтчөө хаавал доорх линкийг заавал хуулж аваарай!</span>
+          </div>
+          <button onClick={handleCopy} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: '#cbd5e1', padding: '10px', borderRadius: '10px', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s', width: '100%' }}>
+            {isCopied ? <CheckCircle2 size={16} color="#86efac" /> : <Copy size={16} />}
+            {isCopied ? 'Хуулагдлаа!' : 'Миний хариуны линкийг хуулах'}
+          </button>
         </div>
 
         {qpayData && (
@@ -152,10 +203,14 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
           </div>
         )}
 
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', background:'rgba(124,158,255,0.08)', border:'1px solid rgba(124,158,255,0.15)', borderRadius:'100px', padding:'10px 20px', marginBottom:'20px' }}>
-          <Loader2 size={14} color="#7c9eff" style={{ animation:'spin 1s linear infinite' }} />
-          <span style={{ color:'#7c9eff', fontSize:'0.8rem', fontWeight:600 }}>Төлбөр хүлээгдэж байна...</span>
-        </div>
+        <button 
+          onClick={handleManualCheck}
+          disabled={isChecking}
+          style={{ width: '100%', display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', background: isChecking ? 'rgba(22, 163, 74, 0.5)' : '#16a34a', border: 'none', borderRadius:'14px', padding:'16px', marginBottom:'16px', color:'#fff', fontSize:'0.95rem', fontWeight:600, cursor: isChecking ? 'not-allowed' : 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 20px rgba(22, 163, 74, 0.3)' }}
+        >
+          {isChecking ? <Loader2 size={18} style={{ animation:'spin 1s linear infinite' }} /> : <CheckCircle2 size={18} />}
+          {isChecking ? 'Шалгаж байна...' : 'Би төлбөрөө төлсөн (Шалгах)'}
+        </button>
 
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:'6px', color:'#475569', fontSize:'0.75rem' }}>
           <ShieldCheck size={12} />
