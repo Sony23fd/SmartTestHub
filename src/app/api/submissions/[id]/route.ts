@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongoose';
 import { Submission } from '@/models/Submission';
+import { Test } from '@/models/Test';
+import { Question } from '@/models/Question';
 
 interface Params {
   params: Promise<{ id: string }>;

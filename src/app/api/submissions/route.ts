@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongoose';
 import { Submission } from '@/models/Submission';
+import { Test } from '@/models/Test';
 
 // GET /api/submissions — list all submissions (optionally filter by ?testId=)
 export async function GET(req: NextRequest) {
