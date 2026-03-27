@@ -22,7 +22,7 @@ export async function getQPayToken(): Promise<string> {
         throw new Error('QPAY_USERNAME and QPAY_PASSWORD are required');
     }
 
-    const basicAuth = btoa(`${username}:${password}`);
+    const basicAuth = Buffer.from(`${username}:${password}`).toString('base64');
 
     const response = await fetch(`${BASE_URL}/auth/token`, {
         method: 'POST',
@@ -94,7 +94,7 @@ export async function createQPayInvoice(
         callback_url: `${appDomain}/api/payments/webhook`,
     };
 
-    const response = await fetch(`${BASE_URL}/invoice`, {
+    let response = await fetch(`${BASE_URL}/invoice`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -102,6 +102,22 @@ export async function createQPayInvoice(
         },
         body: JSON.stringify(payload),
     });
+
+    // SELF-HEALING: If QPay rejects the cached token due to IP mismatch or silent expiration
+    if (response.status === 401) {
+        console.warn('QPay Token rejected (401). Forcing cache flush and retrying...');
+        await QPayToken.deleteMany({}); // Flush corrupted/IP-bound cache
+        token = await getQPayToken(); // Fetch fresh token with current server IP
+        
+        response = await fetch(`${BASE_URL}/invoice`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+    }
 
     if (!response.ok) {
         const errorText = await response.text();
