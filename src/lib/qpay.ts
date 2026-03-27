@@ -72,7 +72,7 @@ export async function createQPayInvoice(
     amount: number,
     description: string
 ): Promise<InvoiceResponse> {
-    const token = await getQPayToken();
+    let token = await getQPayToken();
     const invoiceCode = process.env.QPAY_INVOICE_CODE;
 
     if (!invoiceCode) {

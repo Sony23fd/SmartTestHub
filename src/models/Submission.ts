@@ -28,6 +28,7 @@ export interface ISubmission extends Document {
   resultStatus: string;  // matched from scoringRules (e.g. "GOOD", "BAD")
   paymentStatus: PaymentStatus;
   paymentId?: string;
+  errorLog?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,6 +51,7 @@ const SubmissionSchema = new Schema<ISubmission>(
       default: 'PENDING',
     },
     paymentId: { type: String, default: null },
+    errorLog: { type: String, default: '' },
   },
   { timestamps: true }
 );

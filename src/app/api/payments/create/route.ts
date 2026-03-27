@@ -10,11 +10,13 @@ import { createQPayInvoice } from '@/lib/qpay';
  * Body: { submissionId: string }
  */
 export async function POST(req: NextRequest) {
+    let currentSubmissionId = null;
     try {
         await connectToDatabase();
 
         const body = await req.json();
         const { submissionId } = body;
+        currentSubmissionId = submissionId;
 
         if (!submissionId) {
             return NextResponse.json({ success: false, error: 'submissionId is required' }, { status: 400 });
@@ -79,6 +81,17 @@ export async function POST(req: NextRequest) {
         });
 
     } catch (error: any) {
+        if (currentSubmissionId) {
+            try {
+                const sub = await Submission.findById(currentSubmissionId);
+                if (sub) {
+                    sub.errorLog = `[Invoice Create Error] ${error.message}`;
+                    await sub.save();
+                }
+            } catch (e) {
+                console.error("Failed to save error log:", e);
+            }
+        }
         return NextResponse.json(
             { success: false, error: error.message },
             { status: 500 }

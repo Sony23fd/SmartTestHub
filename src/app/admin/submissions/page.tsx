@@ -12,6 +12,7 @@ interface SubmissionItem {
   paymentStatus: "PENDING" | "PAID";
   resultStatus: string;
   createdAt: string;
+  errorLog?: string;
 }
 
 const cardStyle = {
@@ -113,6 +114,12 @@ export default function SubmissionsPage() {
                       <Clock size={12} /> <span suppressHydrationWarning>{new Date(sub.createdAt).toLocaleString("mn-MN")}</span>
                     </span>
                   </div>
+                  {sub.errorLog && (
+                    <div style={{ marginTop: "12px", padding: "10px 14px", background: "rgba(248,113,113,0.08)", borderLeft: "3px solid #ef4444", borderRadius: "0 8px 8px 0", fontSize: "0.85rem", color: "#fca5a5", display: "flex", alignItems: "flex-start", gap: "8px" }}>
+                      <span style={{ fontSize: "1rem", lineHeight: 1 }}>⚠️</span> 
+                      <span style={{ wordBreak: 'break-word', lineHeight: 1.4 }}><strong>Системийн алдаа:</strong> {sub.errorLog}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: "flex", gap: "8px" }}>

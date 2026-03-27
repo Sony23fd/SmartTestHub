@@ -37,8 +37,10 @@ export async function GET(_req: NextRequest, { params }: Params) {
                         submission.paymentStatus = 'PAID';
                         await submission.save();
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error('QPay API Fallback Check Error:', err);
+                    submission.errorLog = `[Polling Error] ${err.message}`;
+                    await submission.save();
                 }
             }
 
