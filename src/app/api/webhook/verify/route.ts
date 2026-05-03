@@ -16,6 +16,22 @@ export async function POST(req: NextRequest) {
     try {
         await connectToDatabase();
         
+        // 0. Security Verification
+        const expectedToken = process.env.VERIFY_MN_TOKEN;
+        if (expectedToken) {
+            const authHeader = req.headers.get('authorization') || '';
+            const apiKeyHeader = req.headers.get('x-api-key') || '';
+            
+            const isBearerMatch = authHeader.replace('Bearer ', '').trim() === expectedToken;
+            const isRawMatch = authHeader.trim() === expectedToken;
+            const isKeyMatch = apiKeyHeader.trim() === expectedToken;
+
+            if (!isBearerMatch && !isRawMatch && !isKeyMatch) {
+                console.warn("SMS Webhook: Unauthorized attempt blocked.");
+                return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+            }
+        }
+
         // 1. Parse payload defensively
         const body = await req.json();
         
