@@ -24,24 +24,61 @@ const cardStyle = {
   padding: "20px",
 };
 
+// Custom Hook for Debouncing
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 export default function SubmissionsPage() {
   const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filter States
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
+  const [status, setStatus] = useState("ALL");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  
+  // Pagination States
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalDocs, setTotalDocs] = useState(0);
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const fetchSubmissions = async () => {
+    setLoading(true);
     try {
-      const res = await fetch("/api/admin/submissions");
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: "20",
+        search: debouncedSearch,
+        status,
+        ...(startDate && { startDate }),
+        ...(endDate && { endDate })
+      });
+      const res = await fetch(`/api/admin/submissions?${params.toString()}`);
       const data = await res.json();
-      if (data.success) setSubmissions(data.data);
+      if (data.success) {
+        setSubmissions(data.data);
+        setTotalPages(data.pagination.totalPages);
+        setTotalDocs(data.pagination.total);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchSubmissions(); }, []);
+  useEffect(() => { 
+    fetchSubmissions(); 
+  }, [page, debouncedSearch, status, startDate, endDate]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Энэ хариуг устгах уу?")) return;
@@ -59,10 +96,13 @@ export default function SubmissionsPage() {
     setApprovingId(null);
   };
 
-  const filtered = submissions.filter(s => 
-    s.testTitle.toLowerCase().includes(search.toLowerCase()) ||
-    s.resultStatus.toLowerCase().includes(search.toLowerCase())
-  );
+  const clearFilters = () => {
+    setSearch("");
+    setStatus("ALL");
+    setStartDate("");
+    setEndDate("");
+    setPage(1);
+  };
 
   return (
     <div style={{ minHeight: "100vh", padding: "32px 20px" }}>
@@ -75,31 +115,63 @@ export default function SubmissionsPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px", flexWrap: "wrap", gap: "16px" }}>
           <div>
             <h1 style={{ fontSize: "1.6rem", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em" }}>Тест өгсөн хариунууд</h1>
-            <p style={{ color: "#64748b", fontSize: "0.875rem", marginTop: "4px" }}>Нийт {submissions.length} хариу бүртгэгдсэн байна.</p>
+            <p style={{ color: "#64748b", fontSize: "0.875rem", marginTop: "4px" }}>Нийт {totalDocs} хариу бүртгэгдсэн байна.</p>
           </div>
 
-          <div style={{ position: "relative", minWidth: "280px" }}>
-            <Search size={16} color="#475569" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+            <select 
+              value={status} 
+              onChange={(e) => { setStatus(e.target.value); setPage(1); }} 
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#ffffff", padding: "10px", fontSize: "0.85rem", outline: "none", cursor: "pointer" }}
+            >
+              <option value="ALL">Бүх төлөв</option>
+              <option value="PAID">Төлөгдсөн</option>
+              <option value="PENDING">Хүлээгдэж буй</option>
+            </select>
+            
             <input 
-              type="text" 
-              placeholder="Тестээр хайх..." 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              style={{ width: "100%", padding: "10px 14px 10px 40px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#ffffff", fontSize: "0.9rem", outline: "none" }}
+              type="date" 
+              value={startDate} 
+              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#ffffff", padding: "8px", fontSize: "0.85rem", outline: "none", cursor: "pointer" }}
+              title="Эхлэх огноо"
             />
+            <span style={{ color: "#64748b" }}>-</span>
+            <input 
+              type="date" 
+              value={endDate} 
+              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#ffffff", padding: "8px", fontSize: "0.85rem", outline: "none", cursor: "pointer" }}
+              title="Дуусах огноо"
+            />
+
+            <div style={{ position: "relative", minWidth: "220px" }}>
+              <Search size={16} color="#475569" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
+              <input 
+                type="text" 
+                placeholder="Тестээр хайх..." 
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                style={{ width: "100%", padding: "10px 14px 10px 40px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#ffffff", fontSize: "0.9rem", outline: "none" }}
+              />
+            </div>
+            
+            {(search || status !== "ALL" || startDate || endDate) && (
+              <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}>Цэвэрлэх</button>
+            )}
           </div>
         </div>
 
-        {loading ? (
+        {loading && submissions.length === 0 ? (
           <div style={{ display: "flex", justifyContent: "center", padding: "60px" }}>
             <Loader2 size={32} color="#7c9eff" style={{ animation: "spin 1s linear infinite" }} />
           </div>
-        ) : filtered.length === 0 ? (
+        ) : submissions.length === 0 ? (
           <div style={{ ...cardStyle, textAlign: "center", padding: "60px", color: "#475569" }}>Хариу олдсонгүй.</div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {filtered.map((sub) => (
-              <div key={sub._id} style={{ ...cardStyle, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+            {submissions.map((sub) => (
+              <div key={sub._id} style={{ ...cardStyle, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", opacity: loading ? 0.5 : 1, transition: "opacity 0.2s" }}>
                 <div style={{ flex: 1, minWidth: "200px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
                     <h3 style={{ color: "#ffffff", fontWeight: 700, fontSize: "0.95rem" }}>{sub.testTitle}</h3>
@@ -150,8 +222,28 @@ export default function SubmissionsPage() {
             ))}
           </div>
         )}
+
+        {totalPages > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", marginTop: "32px" }}>
+            <button 
+              disabled={page === 1} 
+              onClick={() => setPage(p => p - 1)}
+              style={{ padding: "8px 16px", borderRadius: "10px", background: page === 1 ? "rgba(255,255,255,0.05)" : "rgba(124,158,255,0.1)", color: page === 1 ? "#475569" : "#7c9eff", border: "none", cursor: page === 1 ? "not-allowed" : "pointer" }}
+            >
+              Өмнөх
+            </button>
+            <span style={{ color: "#94a3b8", fontSize: "0.9rem" }}>Хуудас {page} / {totalPages}</span>
+            <button 
+              disabled={page === totalPages} 
+              onClick={() => setPage(p => p + 1)}
+              style={{ padding: "8px 16px", borderRadius: "10px", background: page === totalPages ? "rgba(255,255,255,0.05)" : "rgba(124,158,255,0.1)", color: page === totalPages ? "#475569" : "#7c9eff", border: "none", cursor: page === totalPages ? "not-allowed" : "pointer" }}
+            >
+              Дараах
+            </button>
+          </div>
+        )}
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } } input::placeholder { color: #334155; }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } input::placeholder { color: #334155; } input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }`}</style>
     </div>
   );
 }
