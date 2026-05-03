@@ -4,31 +4,33 @@ import { Submission } from '@/models/Submission';
 import { getVerifySessionStatus } from '@/lib/verifyMn';
 
 /**
- * GET /api/webhook/verify?sessionId=...
+ * GET /api/webhook/verify?submissionId=...
  * Official verify.mn callback endpoint. Fired when SMS is received.
  * Does NOT contain payload. We MUST immediately return 200, then check the session status.
  */
 export async function GET(req: NextRequest) {
-    // 1. Immediately extract sessionId
+    // 1. Extract submissionId from the query param we injected during /api/verify/start
     const { searchParams } = new URL(req.url);
-    const sessionId = searchParams.get('sessionId');
+    const submissionId = searchParams.get('submissionId');
 
-    if (!sessionId) {
-        return NextResponse.json({ success: false, error: 'Missing sessionId' }, { status: 400 });
+    if (!submissionId) {
+        return NextResponse.json({ success: false, error: 'Missing submissionId' }, { status: 400 });
     }
 
-    // 2. We should ideally return 200 fast, but Vercel Serverless requires us to await the work
-    // otherwise the function freezes. verify.mn has a 3s timeout. Our DB + API check should take < 1s.
     try {
-        // Double check session status with verify.mn
-        const status = await getVerifySessionStatus(sessionId);
+        await connectToDatabase();
+        
+        // 2. Find the submission to get the sessionId
+        const submission = await Submission.findById(submissionId);
+        if (!submission || !submission.verifySessionId) {
+            return NextResponse.json({ success: false, error: 'Submission or verifySessionId not found' }, { status: 404 });
+        }
+
+        // 3. Double check session status with verify.mn
+        const status = await getVerifySessionStatus(submission.verifySessionId);
 
         if (status.sessionStatus === 'VERIFIED') {
-            await connectToDatabase();
-            
-            // Link phone to submission
-            const submission = await Submission.findOne({ verifySessionId: sessionId });
-            if (submission && !submission.isVerified) {
+            if (!submission.isVerified) {
                 submission.phoneNumber = status.phone;
                 submission.isVerified = true;
                 await submission.save();
@@ -38,10 +40,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("verify.mn callback error:", error);
-        // We still return 200 to acknowledge receipt even if our check fails temporarily,
-        // so verify.mn doesn't infinitely retry unless it's a critical timeout.
-        // Wait, their docs say: "Must return 2xx fast... Transient (5xx) -> up to 5 retries".
-        // Let's return 500 if our DB failed so they retry.
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

@@ -29,8 +29,7 @@ export async function POST(req: NextRequest) {
           || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
           || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') 
           || 'http://localhost:3000';
-          
-        const callbackUrl = `${appDomain}/api/webhook/verify`;
+        const callbackUrl = `${appDomain}/api/webhook/verify?submissionId=${submission._id.toString()}`;
 
         // 1. Create a session with verify.mn
         const verifyRes = await createVerifySession({
