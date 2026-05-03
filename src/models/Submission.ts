@@ -32,6 +32,7 @@ export interface ISubmission extends Document {
   shortId: string;
   phoneNumber?: string;
   isVerified: boolean;
+  verifySessionId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -58,6 +59,7 @@ const SubmissionSchema = new Schema<ISubmission>(
     shortId: { type: String, required: true, unique: true },
     phoneNumber: { type: String, default: null },
     isVerified: { type: Boolean, default: false },
+    verifySessionId: { type: String, default: null },
   },
   { timestamps: true }
 );

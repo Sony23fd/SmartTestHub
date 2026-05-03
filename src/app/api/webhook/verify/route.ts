@@ -1,74 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongoose';
 import { Submission } from '@/models/Submission';
+import { getVerifySessionStatus } from '@/lib/verifyMn';
 
 /**
- * POST /api/webhook/verify
- * Handles inbound SMS from Verify.mn gateway.
- * Expected payload (can vary based on verify.mn docs):
- * {
- *   "sender": "99112233",
- *   "text": "4582",
- *   "timestamp": "2026-05-03T...Z"
- * }
+ * GET /api/webhook/verify?sessionId=...
+ * Official verify.mn callback endpoint. Fired when SMS is received.
+ * Does NOT contain payload. We MUST immediately return 200, then check the session status.
  */
-export async function POST(req: NextRequest) {
-    try {
-        await connectToDatabase();
-        
-        // 0. Security Verification
-        const expectedToken = process.env.VERIFY_MN_TOKEN;
-        if (expectedToken) {
-            const authHeader = req.headers.get('authorization') || '';
-            const apiKeyHeader = req.headers.get('x-api-key') || '';
-            
-            const isBearerMatch = authHeader.replace('Bearer ', '').trim() === expectedToken;
-            const isRawMatch = authHeader.trim() === expectedToken;
-            const isKeyMatch = apiKeyHeader.trim() === expectedToken;
+export async function GET(req: NextRequest) {
+    // 1. Immediately extract sessionId
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get('sessionId');
 
-            if (!isBearerMatch && !isRawMatch && !isKeyMatch) {
-                console.warn("SMS Webhook: Unauthorized attempt blocked.");
-                return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    if (!sessionId) {
+        return NextResponse.json({ success: false, error: 'Missing sessionId' }, { status: 400 });
+    }
+
+    // 2. We should ideally return 200 fast, but Vercel Serverless requires us to await the work
+    // otherwise the function freezes. verify.mn has a 3s timeout. Our DB + API check should take < 1s.
+    try {
+        // Double check session status with verify.mn
+        const status = await getVerifySessionStatus(sessionId);
+
+        if (status.sessionStatus === 'VERIFIED') {
+            await connectToDatabase();
+            
+            // Link phone to submission
+            const submission = await Submission.findOne({ verifySessionId: sessionId });
+            if (submission && !submission.isVerified) {
+                submission.phoneNumber = status.phone;
+                submission.isVerified = true;
+                await submission.save();
             }
         }
 
-        // 1. Parse payload defensively
-        const body = await req.json();
-        
-        // Adapt based on actual verify.mn payload structure
-        const phone = body.sender || body.from || body.phone_number;
-        const rawText = body.text || body.message || "";
-        
-        if (!phone || !rawText) {
-            return NextResponse.json({ success: false, error: 'Missing phone or text' }, { status: 400 });
-        }
-
-        // 2. Extract the 4-digit code (trim spaces, ignore case)
-        const shortId = rawText.toString().trim();
-
-        // 3. Find the matching submission
-        const submission = await Submission.findOne({ shortId });
-
-        if (!submission) {
-            // Verify.mn might expect 200 OK even if not found, to avoid retries,
-            // but we can log it.
-            console.warn(`SMS Webhook: No submission found for code: ${shortId}`);
-            return NextResponse.json({ success: false, error: 'Code not found' }, { status: 404 });
-        }
-
-        // 4. Update the submission
-        submission.phoneNumber = phone;
-        submission.isVerified = true;
-        await submission.save();
-
-        // 5. Return success
-        return NextResponse.json({ success: true, message: 'Successfully verified' });
-
+        return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error("Webhook Error:", error);
-        return NextResponse.json(
-            { success: false, error: error.message },
-            { status: 500 }
-        );
+        console.error("verify.mn callback error:", error);
+        // We still return 200 to acknowledge receipt even if our check fails temporarily,
+        // so verify.mn doesn't infinitely retry unless it's a critical timeout.
+        // Wait, their docs say: "Must return 2xx fast... Transient (5xx) -> up to 5 retries".
+        // Let's return 500 if our DB failed so they retry.
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }

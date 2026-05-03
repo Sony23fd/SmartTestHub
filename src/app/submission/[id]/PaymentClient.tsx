@@ -21,6 +21,12 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
   const [isCopied, setIsCopied] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
 
+  // Verification states
+  const [verifyPhone, setVerifyPhone] = useState("");
+  const [verifySession, setVerifySession] = useState<any>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState<"IDLE" | "PENDING" | "VERIFIED" | "EXPIRED">("IDLE");
+
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
     setIsCopied(true);
@@ -103,6 +109,64 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
     };
   }, [qpayData, manualInfo, submissionId, router]);
 
+  // Poll for verification status
+  useEffect(() => {
+    if (verifyStatus !== "PENDING" || !verifySession) return;
+    
+    let timeoutId: NodeJS.Timeout;
+    let isActive = true;
+
+    const pollVerify = async () => {
+      if (!isActive) return;
+      try {
+        const res = await fetch(`/api/verify/status?sessionId=${verifySession.sessionId}`);
+        const data = await res.json();
+        if (data.success) {
+          if (data.data.sessionStatus === "VERIFIED") {
+            setVerifyStatus("VERIFIED");
+            return;
+          } else if (data.data.sessionStatus === "EXPIRED") {
+            setVerifyStatus("EXPIRED");
+            return;
+          }
+        }
+      } catch (e) {
+        console.error("Verification poll error", e);
+      }
+      
+      timeoutId = setTimeout(pollVerify, 3000);
+    };
+
+    timeoutId = setTimeout(pollVerify, 3000);
+    return () => {
+      isActive = false;
+      clearTimeout(timeoutId);
+    };
+  }, [verifyStatus, verifySession]);
+
+  const handleStartVerify = async () => {
+    if (verifyPhone.length < 8) return;
+    setVerifyLoading(true);
+    try {
+      const res = await fetch("/api/verify/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId, phone: verifyPhone })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setVerifySession(data.data);
+        setVerifyStatus("PENDING");
+      } else {
+        alert(data.error || "Алдаа гарлаа");
+      }
+    } catch {
+      alert("Сүлжээний алдаа");
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', gap:'12px', color:'#64748b' }}>
@@ -142,10 +206,51 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
           <p style={{ color:'#64748b', fontSize:'0.875rem', lineHeight:1.6 }}>Үр дүнгээ харахын тулд QR кодыг уншуулна уу.</p>
         </div>
 
-        <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px', padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px', padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: '#7dd3fc', fontSize: '0.85rem', lineHeight: 1.5 }}>
             <span style={{ fontSize: '1.2rem', marginTop: '-2px' }}>📱</span> 
-            <span><strong>Хариугаа хадгалах уу?</strong><br/>Та энэ хуудсыг хаасан ч хариугаа устгахгүйгээр дараа үзэхийг хүсвэл <strong>{(qpayData?.shortId || manualInfo?.shortId) || '...'}</strong> гэсэн кодыг <strong>13xxxx</strong> дугаарт илгээнэ үү. (Эсвэл төлбөрөө банкны апп-аар төлөхөд автоматаар хадгалагдана).</span>
+            <div>
+              <strong>Хариугаа хадгалах уу?</strong>
+              {verifyStatus === "IDLE" && (
+                <div style={{ marginTop: "8px" }}>
+                  <p style={{ marginBottom: "8px", fontSize: "0.8rem", color: "#bae6fd" }}>Та хариугаа устгахгүйгээр дараа үзэхийг хүсвэл утасны дугаараа оруулан баталгаажуулна уу.</p>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input 
+                      type="tel" 
+                      placeholder="Утасны дугаар" 
+                      value={verifyPhone} 
+                      onChange={e => setVerifyPhone(e.target.value)}
+                      style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.2)", color: "#fff", outline: "none" }}
+                    />
+                    <button 
+                      onClick={handleStartVerify}
+                      disabled={verifyLoading || verifyPhone.length < 8}
+                      style={{ padding: "8px 12px", borderRadius: "8px", border: "none", background: "#38bdf8", color: "#0f172a", fontWeight: "bold", cursor: verifyLoading || verifyPhone.length < 8 ? "not-allowed" : "pointer" }}
+                    >
+                      {verifyLoading ? "..." : "Хадгалах"}
+                    </button>
+                  </div>
+                </div>
+              )}
+              {verifyStatus === "PENDING" && verifySession && (
+                <div style={{ marginTop: "8px", padding: "12px", background: "rgba(0,0,0,0.2)", borderRadius: "8px" }}>
+                  <p style={{ marginBottom: "12px", color: "#fff" }}>{verifySession.displayInstruction}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#38bdf8", fontSize: "0.8rem" }}>
+                    <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> Мессэж хүлээж байна...
+                  </div>
+                </div>
+              )}
+              {verifyStatus === "VERIFIED" && (
+                <div style={{ marginTop: "8px", padding: "8px", background: "rgba(34, 197, 94, 0.2)", borderRadius: "8px", display: "flex", alignItems: "center", gap: "6px", color: "#86efac" }}>
+                  <CheckCircle2 size={16} /> Таны дугаар дээр амжилттай хадгалагдлаа!
+                </div>
+              )}
+              {verifyStatus === "EXPIRED" && (
+                <div style={{ marginTop: "8px", padding: "8px", background: "rgba(239, 68, 68, 0.2)", borderRadius: "8px", color: "#fca5a5" }}>
+                  Хугацаа дууссан байна. Хуудсаа refresh хийгээд дахин оролдоно уу.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
