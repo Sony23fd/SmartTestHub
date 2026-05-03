@@ -132,7 +132,21 @@ export async function POST(req: NextRequest) {
     const resultText = matchedRule?.resultText ?? 'Үр дүн тодорхойгүй байна';
     const resultStatus = matchedRule?.status ?? 'UNKNOWN';
 
-    // ── 7. Save Submission ────────────────────────────────────────────────────
+    // ── 7. Generate Unique 4-digit Short ID ──────────────────────────────────
+    let shortId = Math.floor(1000 + Math.random() * 9000).toString();
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 10) {
+      const existing = await Submission.findOne({ shortId }).select('_id').lean();
+      if (!existing) {
+        isUnique = true;
+      } else {
+        shortId = Math.floor(1000 + Math.random() * 9000).toString();
+        attempts++;
+      }
+    }
+
+    // ── 8. Save Submission ────────────────────────────────────────────────────
     const submission = await Submission.create({
       testId,
       responses: scoredResponses,
@@ -140,9 +154,10 @@ export async function POST(req: NextRequest) {
       resultText,
       resultStatus,
       paymentStatus: test.price === 0 ? 'PAID' : 'PENDING',
+      shortId,
     });
 
-    // ── 8. Return result ──────────────────────────────────────────────────────
+    // ── 9. Return result ──────────────────────────────────────────────────────
     return NextResponse.json(
       {
         success: true,
@@ -153,6 +168,7 @@ export async function POST(req: NextRequest) {
           resultText,
           resultStatus,
           paymentStatus: submission.paymentStatus,
+          shortId: submission.shortId,
           // Include test price so the frontend can show payment info
           price: test.price,
         },

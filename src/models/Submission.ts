@@ -29,6 +29,9 @@ export interface ISubmission extends Document {
   paymentStatus: PaymentStatus;
   paymentId?: string;
   errorLog?: string;
+  shortId: string;
+  phoneNumber?: string;
+  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +55,9 @@ const SubmissionSchema = new Schema<ISubmission>(
     },
     paymentId: { type: String, default: null },
     errorLog: { type: String, default: '' },
+    shortId: { type: String, required: true, unique: true },
+    phoneNumber: { type: String, default: null },
+    isVerified: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

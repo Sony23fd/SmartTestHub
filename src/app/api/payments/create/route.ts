@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({
                 success: false,
                 qpayDisabled: true,
+                shortId: submission.shortId,
                 bankInfo: {
                     price: price,
                     name: setting.bankName,
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
                 qr_text: qpayResponse.qr_text,
                 qr_image: qpayResponse.qr_image,
                 urls: qpayResponse.urls,
+                shortId: submission.shortId,
             }
         });
 

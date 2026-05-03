@@ -8,13 +8,14 @@ import { CheckCircle2, ShieldCheck, Loader2, QrCode, Copy } from "lucide-react";
 interface QPayData {
   invoice_id: string;
   qr_image: string;
+  shortId?: string;
   urls: { name: string; logo: string; link: string }[];
 }
 
 export default function PaymentClient({ submissionId }: { submissionId: string }) {
   const router = useRouter();
   const [qpayData, setQpayData] = useState<QPayData | null>(null);
-  const [manualInfo, setManualInfo] = useState<{ price: number; name: string; account: string; accountName: string } | null>(null);
+  const [manualInfo, setManualInfo] = useState<{ price: number; name: string; account: string; accountName: string; shortId?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isCopied, setIsCopied] = useState(false);
@@ -53,7 +54,7 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
         if (data.success) {
           setQpayData(data.data);
         } else if (data.qpayDisabled) {
-          setManualInfo(data.bankInfo);
+          setManualInfo({ ...data.bankInfo, shortId: data.shortId });
         } else {
           if (data.error?.includes("already completed") || data.error?.includes("free")) {
             router.push(`/submission/${submissionId}/result`);
@@ -139,6 +140,13 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
           </div>
           <h1 style={{ fontSize:'1.4rem', fontWeight:800, color:'#ffffff', marginBottom:'8px' }}>Таны хариу бэлэн!</h1>
           <p style={{ color:'#64748b', fontSize:'0.875rem', lineHeight:1.6 }}>Үр дүнгээ харахын тулд QR кодыг уншуулна уу.</p>
+        </div>
+
+        <div style={{ background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.2)', borderRadius: '16px', padding: '16px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', color: '#7dd3fc', fontSize: '0.85rem', lineHeight: 1.5 }}>
+            <span style={{ fontSize: '1.2rem', marginTop: '-2px' }}>📱</span> 
+            <span><strong>Хариугаа хадгалах уу?</strong><br/>Та энэ хуудсыг хаасан ч хариугаа устгахгүйгээр дараа үзэхийг хүсвэл <strong>{(qpayData?.shortId || manualInfo?.shortId) || '...'}</strong> гэсэн кодыг <strong>13xxxx</strong> дугаарт илгээнэ үү. (Эсвэл төлбөрөө банкны апп-аар төлөхөд автоматаар хадгалагдана).</span>
+          </div>
         </div>
 
         <div style={{ background: 'rgba(234, 179, 8, 0.08)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '16px', padding: '16px', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
