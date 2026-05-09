@@ -2,62 +2,13 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongoose";
 import { Test } from "@/models/Test";
 import { Question } from "@/models/Question";
-import fs from "fs";
-import path from "path";
-
-function parseQuestions(text: string) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-  const questions = [];
-  
-  for(let line of lines) {
-    // Strip the answer keys at the end
-    let qText = line
-      .replace(/Т0.*Ү3/i, '')
-      .replace(/Т3.*Ү0/i, '')
-      .replace(/Т0\s*Ү1/i, '')
-      .replace(/Т1\s*Ү0/i, '')
-      .replace(/Тийм 0.*Үгүй 3/i, '')
-      .replace(/Тийм 3.*Үгүй 0/i, '')
-      .replace(/Тийм 0.*Үгүй 1/i, '')
-      .replace(/Тийм 1.*Үгүй 0/i, '')
-      .replace(/Т0, И1, З2, Ү3/i, '')
-      .replace(/Т3, И2, З1, Ү0/i, '')
-      .replace(/Т1Ү0/i, '')
-      .replace(/Т0Ү1/i, '')
-      .replace(/Тийм 0, Ихэвчлэн 1, Заримдаа 2,\s*Үгүй 3 оноо/i, '')
-      .replace(/Тийм 0 оноо, Ихэвчлэн 1, Заримдаа 2,\s*Үгүй 3 оноо/i, '')
-      .replace(/Тийм 3, Ихэвчлэн 2, Заримдаа 1, Үгүй 0/i, '')
-      .replace(/Тийм 0 , Ихэвчлэн 1, Заримдаа 2, Үгүй 3/i, '')
-      .trim();
-      
-    // Remove any trailing commas or stray characters
-    qText = qText.replace(/[,]$/, '').trim();
-
-    if(line.match(/Т0.*Ү3/i) || line.includes('Үгүй 3')) {
-      questions.push({ text: qText, options: [{text:'Тийм',score:0},{text:'Ихэвчлэн',score:1},{text:'Заримдаа',score:2},{text:'Үгүй',score:3}] });
-    } else if(line.match(/Т3.*Ү0/i) || line.includes('Үгүй 0')) {
-      questions.push({ text: qText, options: [{text:'Тийм',score:3},{text:'Ихэвчлэн',score:2},{text:'Заримдаа',score:1},{text:'Үгүй',score:0}] });
-    } else if(line.match(/Т0.*Ү1/i) || line.includes('Т0 Ү1') || line.includes('Т0Ү1')) {
-      questions.push({ text: qText, options: [{text:'Тийм',score:0},{text:'Үгүй',score:1}] });
-    } else if(line.match(/Т1.*Ү0/i) || line.includes('Т1 Ү0') || line.includes('Т1Ү0')) {
-      questions.push({ text: qText, options: [{text:'Тийм',score:1},{text:'Үгүй',score:0}] });
-    }
-  }
-  return questions;
-}
+import data from "./data.json";
 
 export async function GET() {
   try {
     await connectToDatabase();
 
-    // Paths
-    const p03 = path.join(process.cwd(), '03_clean.txt');
-    const p411 = path.join(process.cwd(), '411_clean.txt');
-    const pAdult = path.join(process.cwd(), 'adult_clean.txt');
-
-    const q03 = parseQuestions(fs.readFileSync(p03, 'utf8'));
-    const q411 = parseQuestions(fs.readFileSync(p411, 'utf8'));
-    const qAdult = parseQuestions(fs.readFileSync(pAdult, 'utf8'));
+    const { q03, q411, qAdult } = data;
 
     // Test 1: 0-3
     const test03Slug = "autism-test-0-3";
