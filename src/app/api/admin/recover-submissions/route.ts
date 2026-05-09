@@ -21,45 +21,54 @@ export async function GET() {
     const submissions = await Submission.find({}).lean();
     
     let updatedCount = 0;
+    const testMap: Record<string, any> = {};
+    const bulkOps = [];
 
     for (let sub of submissions) {
-      // Check if this testId exists in the current valid tests
-      if (sub.testId.toString() === t03._id.toString() ||
-          sub.testId.toString() === t411._id.toString() ||
-          sub.testId.toString() === tAdult._id.toString()) {
-        continue; // Already valid
+      const oldIdStr = sub.testId.toString();
+
+      // Already valid
+      if (oldIdStr === t03._id.toString() ||
+          oldIdStr === t411._id.toString() ||
+          oldIdStr === tAdult._id.toString()) {
+        continue;
       }
 
-      // This is an orphaned submission. We must guess which test it belongs to.
-      // Easiest way: look at the number of responses.
-      // 0-3 has 20 questions
-      // 4-11 has 31 questions
-      // Adult has 48 questions
-      const count = sub.responses.length;
-      let newTestId = null;
+      let newTestId = testMap[oldIdStr];
 
-      // Note: sometimes users might not finish the test, but the frontend usually submits all at once.
-      // Let's also check the old questions if length is ambiguous.
-      if (count === 20) newTestId = t03._id;
-      else if (count === 31) newTestId = t411._id;
-      else if (count === 48 || count === 50 || count === 51) newTestId = tAdult._id;
-      else {
-        // Fallback: look at the old questions from the DB to see what they were
-        const oldQs = await Question.find({ testId: sub.testId }).limit(1).lean();
-        if (oldQs.length > 0) {
-          const qText = oldQs[0].text.toLowerCase();
-          if (qText.includes('нэрээр')) newTestId = t03._id; // 'нэрээр дуудахад' is in 0-3 and 4-11
-          if (qText.includes('бусдыг ойлгох') || qText.includes('насанд')) newTestId = tAdult._id;
+      if (!newTestId) {
+        const count = sub.responses.length;
+        if (count === 20) newTestId = t03._id;
+        else if (count === 31) newTestId = t411._id;
+        else if (count >= 48) newTestId = tAdult._id;
+        else {
+          const oldQs = await Question.find({ testId: sub.testId }).limit(1).lean();
+          if (oldQs.length > 0) {
+            const qText = oldQs[0].text.toLowerCase();
+            if (qText.includes('нэрээр')) newTestId = t03._id;
+            else if (qText.includes('бусдыг ойлгох') || qText.includes('насанд')) newTestId = tAdult._id;
+            else newTestId = t411._id;
+          } else {
+            // Default fallback if questions are also gone
+            newTestId = t411._id; 
+          }
         }
+        testMap[oldIdStr] = newTestId;
       }
-
-      // If we still don't know, we can guess by totalScore range perhaps, or just assume 4-11 if it matches some logic.
-      // Actually, if we look at the existing sub's testId and we've mapped it once, we can just use a map.
 
       if (newTestId) {
-        await Submission.updateOne({ _id: sub._id }, { $set: { testId: newTestId } });
+        bulkOps.push({
+          updateOne: {
+            filter: { _id: sub._id },
+            update: { $set: { testId: newTestId } }
+          }
+        });
         updatedCount++;
       }
+    }
+
+    if (bulkOps.length > 0) {
+      await Submission.bulkWrite(bulkOps);
     }
 
     return NextResponse.json({ 
