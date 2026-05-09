@@ -196,7 +196,7 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        style={{ width:'100%', maxWidth:'440px', background:'rgba(15,23,42,0.88)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'40px', boxShadow:'0 0 80px rgba(124,158,255,0.07)' }}
+        style={{ width:'100%', maxWidth:'440px', background:'rgba(15,23,42,0.88)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'clamp(24px, 6vw, 40px) clamp(20px, 5vw, 40px)', boxShadow:'0 0 80px rgba(124,158,255,0.07)' }}
       >
         <div style={{ textAlign:'center', marginBottom:'32px' }}>
           <div style={{ width:56, height:56, borderRadius:'16px', background:'rgba(134,239,172,0.1)', border:'1px solid rgba(134,239,172,0.2)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
@@ -220,7 +220,7 @@ export default function PaymentClient({ submissionId }: { submissionId: string }
                       placeholder="Утасны дугаар" 
                       value={verifyPhone} 
                       onChange={e => setVerifyPhone(e.target.value)}
-                      style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.2)", color: "#fff", outline: "none" }}
+                      style={{ flex: 1, padding: "8px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.2)", background: "rgba(0,0,0,0.2)", color: "#fff", outline: "none", minWidth: 0 }}
                     />
                     <button 
                       onClick={handleStartVerify}

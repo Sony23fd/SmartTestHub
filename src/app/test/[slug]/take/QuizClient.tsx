@@ -107,7 +107,7 @@ export default function QuizClient({ test, questions }: { test: TestData; questi
         </div>
 
         {/* Question Card */}
-        <div style={{ position: 'relative', minHeight: '420px' }}>
+        <div style={{ position: 'relative', width: '100%' }}>
           <AnimatePresence custom={direction} mode="wait">
             {!isSubmitting ? (
               <motion.div
@@ -118,9 +118,9 @@ export default function QuizClient({ test, questions }: { test: TestData; questi
                 animate="center"
                 exit="exit"
                 transition={{ type: 'spring', stiffness: 280, damping: 28, opacity: { duration: 0.2 } }}
-                style={{ position: 'absolute', width: '100%' }}
+                style={{ width: '100%' }}
               >
-                <div style={{ background:'rgba(15,23,42,0.85)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'36px', boxShadow:'0 0 60px rgba(124,158,255,0.05)' }}>
+                <div style={{ background:'rgba(15,23,42,0.85)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'clamp(20px, 5vw, 36px)', boxShadow:'0 0 60px rgba(124,158,255,0.05)' }}>
                   {/* Icon */}
                   <div style={{ width:40, height:40, borderRadius:'10px', background:'rgba(124,158,255,0.1)', border:'1px solid rgba(124,158,255,0.2)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'20px' }}>
                     <IconComp size={18} color="#7c9eff" />
@@ -187,7 +187,7 @@ export default function QuizClient({ test, questions }: { test: TestData; questi
                 key="submitting"
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                style={{ position:'absolute', width:'100%', background:'rgba(15,23,42,0.85)', backdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'60px 40px', textAlign:'center' }}
+                style={{ width:'100%', background:'rgba(15,23,42,0.85)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'clamp(40px, 8vw, 60px) 20px', textAlign:'center' }}
               >
                 <div style={{ width:48, height:48, borderRadius:'50%', border:'3px solid rgba(124,158,255,0.3)', borderTopColor:'#7c9eff', animation:'spin 1s linear infinite', margin:'0 auto 20px' }} />
                 <h2 style={{ color:'#ffffff', fontSize:'1.2rem', fontWeight:700, marginBottom:'8px' }}>Боловсруулж байна...</h2>

@@ -77,7 +77,7 @@ export default function ResultClient({ submissionId }: { submissionId: string })
         initial={{ opacity: 0, y: 30, scale: 0.94 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, type: 'spring', bounce: 0.35 }}
-        style={{ width:'100%', maxWidth:'540px', background:'rgba(15,23,42,0.88)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'44px 40px', boxShadow:`0 0 100px ${accentGlow}` }}
+        style={{ width:'100%', maxWidth:'540px', background:'rgba(15,23,42,0.88)', backdropFilter:'blur(24px)', WebkitBackdropFilter:'blur(24px)', border:'1px solid rgba(255,255,255,0.1)', borderRadius:'24px', padding:'clamp(28px, 6vw, 44px) clamp(20px, 5vw, 40px)', boxShadow:`0 0 100px ${accentGlow}` }}
       >
         {/* Icon */}
         <div style={{ textAlign:'center', marginBottom:'28px' }}>
@@ -109,7 +109,7 @@ export default function ResultClient({ submissionId }: { submissionId: string })
           initial={{ opacity:0, y:16 }}
           animate={{ opacity:1, y:0 }}
           transition={{ delay: 0.45 }}
-          style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${accentBorder}`, borderRadius:'16px', padding:'24px', marginBottom:'32px' }}
+          style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${accentBorder}`, borderRadius:'16px', padding:'clamp(16px, 4vw, 24px)', marginBottom:'32px' }}
         >
           <div style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'14px' }}>
             <div style={{ width:4, height:18, borderRadius:'10px', background:accentColor }} />
