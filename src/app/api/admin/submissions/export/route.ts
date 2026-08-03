@@ -7,21 +7,19 @@ export async function GET(request: Request) {
   await connectToDatabase();
   const { searchParams } = new URL(request.url);
   
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const limit = parseInt(searchParams.get("limit") || "20", 10);
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status") || "ALL";
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
-  const testId = searchParams.get("testId") || "ALL";
+  const testId = searchParams.get("testId");
 
   const query: any = {};
 
   if (status !== "ALL") {
     query.paymentStatus = status;
   }
-  
-  if (testId !== "ALL") {
+
+  if (testId && testId !== "ALL") {
     query.testId = testId;
   }
 
@@ -45,49 +43,40 @@ export async function GET(request: Request) {
     ];
   }
 
-  const skip = (page - 1) * limit;
-
-  const [submissions, total] = await Promise.all([
-    Submission.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean(),
-    Submission.countDocuments(query)
-  ]);
+  const submissions = await Submission.find(query)
+    .sort({ createdAt: -1 })
+    .lean();
 
   const richSubmissions = await Promise.all(
     submissions.map(async (sub: any) => {
       const test = await Test.findById(sub.testId).select("title").lean() as any;
       return {
         ...sub,
-        _id: sub._id.toString(),
-        testId: sub.testId.toString(),
         testTitle: test?.title || "Устгагдсан тест",
       };
     })
   );
 
-  return NextResponse.json({ 
-    success: true, 
-    data: richSubmissions,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    }
+  // Generate CSV
+  const header = ["Огноо", "Утасны дугаар", "Тест", "Оноо", "Дүгнэлт", "Төлбөр"];
+  const rows = richSubmissions.map((sub: any) => {
+    return [
+      `"${new Date(sub.createdAt).toLocaleString("mn-MN")}"`,
+      `"${sub.phoneNumber || ""}"`,
+      `"${sub.testTitle}"`,
+      `"${sub.totalScore}"`,
+      `"${sub.resultStatus || ""}"`,
+      `"${sub.paymentStatus === 'PAID' ? 'ТӨЛӨГДСӨН' : 'ХҮЛЭЭГДЭЖ БУЙ'}"`
+    ].join(",");
   });
-}
 
-// DELETE: Admin can remove a submission entry
-export async function DELETE(request: Request) {
-  await connectToDatabase();
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-  
-  if (!id) return NextResponse.json({ success: false, error: "ID шаардлагатай" }, { status: 400 });
-  
-  await Submission.findByIdAndDelete(id);
-  return NextResponse.json({ success: true, message: "Амжилттай устгагдлаа" });
+  const csvContent = "\uFEFF" + [header.join(","), ...rows].join("\n"); // \uFEFF is for UTF-8 BOM for Excel
+
+  return new NextResponse(csvContent, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="submissions_export_${new Date().toISOString().slice(0,10)}.csv"`,
+    },
+  });
 }

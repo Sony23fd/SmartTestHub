@@ -38,6 +38,7 @@ export async function connectToDatabase(): Promise<typeof mongoose> {
       return mongooseInstance;
     }).catch((err) => {
       console.error('MongoDB Connection Error ❌:', err.message);
+      cached.promise = null; // Reset cache so it can retry!
       throw err;
     });
   }

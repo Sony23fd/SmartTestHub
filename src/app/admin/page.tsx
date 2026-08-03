@@ -3,7 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, Edit2, HelpCircle, LogOut, BarChart3, Loader2, ChevronRight, Brain, CheckCircle, Settings } from "lucide-react";
+import { PlusCircle, Trash2, Edit2, HelpCircle, LogOut, BarChart3, Loader2, ChevronRight, Brain, CheckCircle, Settings, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TestItem {
   _id: string;
@@ -14,11 +31,83 @@ interface TestItem {
   paidCount: number;
 }
 
+function SortableTestItem({ test, onDelete, deletingId }: any) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: test._id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1 : 0,
+    position: isDragging ? ("relative" as any) : "static",
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ ...style, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", transition: "background 0.2s", background: isDragging ? "rgba(255,255,255,0.05)" : "transparent" }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", flex: 1 }}>
+        <button {...attributes} {...listeners} style={{ background: "none", border: "none", color: "#64748b", cursor: "grab", padding: "4px" }}>
+          <GripVertical size={16} />
+        </button>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
+            <span style={{ fontWeight: 600, color: "#ffffff", fontSize: "0.95rem" }}>{test.title}</span>
+            <span style={{ fontSize: "11px", color: "#7c9eff", background: "rgba(124,158,255,0.1)", padding: "2px 8px", borderRadius: "100px", fontWeight: 600 }}>
+              {test.price === 0 ? "ҮНЭГҮЙ" : `${test.price.toLocaleString('en-US')}₮`}
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: "16px" }}>
+            <span style={{ fontSize: "0.8rem", color: "#475569" }}>{test.submissionCount} оролдлого</span>
+            <span style={{ fontSize: "0.8rem", color: "#64748b" }}>{test.paidCount} төлөгдсөн</span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <Link href={`/admin/tests/${test._id}/questions`} style={{ textDecoration: "none" }}>
+          <button style={{ padding: "7px 12px", borderRadius: "8px", background: "rgba(124,158,255,0.1)", border: "1px solid rgba(124,158,255,0.15)", color: "#7c9eff", fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+            <HelpCircle size={13} /> Асуулт
+          </button>
+        </Link>
+        <Link href={`/admin/tests/${test._id}/edit`} style={{ textDecoration: "none" }}>
+          <button style={{ padding: "7px 12px", borderRadius: "8px", background: "rgba(253,230,138,0.08)", border: "1px solid rgba(253,230,138,0.15)", color: "#fde68a", fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+            <Edit2 size={13} /> Засах
+          </button>
+        </Link>
+        <button
+          onClick={() => onDelete(test._id, test.title)}
+          disabled={deletingId === test._id}
+          style={{ padding: "7px 12px", borderRadius: "8px", background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.15)", color: "#f87171", fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}
+        >
+          {deletingId === test._id ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={13} />}
+          Устгах
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const [tests, setTests] = useState<TestItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const fetchTests = async () => {
     try {
@@ -31,6 +120,32 @@ export default function AdminDashboard() {
   };
 
   useEffect(() => { fetchTests(); }, []);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setTests((items) => {
+        const oldIndex = items.findIndex((i) => i._id === active.id);
+        const newIndex = items.findIndex((i) => i._id === over.id);
+
+        const newItems = arrayMove(items, oldIndex, newIndex);
+        
+        const updatePayload = newItems.map((item, index) => ({
+          id: item._id,
+          order: index
+        }));
+        
+        fetch("/api/admin/tests/reorder", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tests: updatePayload })
+        }).catch(err => console.error("Reorder failed", err));
+
+        return newItems;
+      });
+    }
+  };
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`"${title}" тестийг устгах уу? Бүх асуулт мөн устана.`)) return;
@@ -123,48 +238,20 @@ export default function AdminDashboard() {
               Тест байхгүй байна. "Шинэ тест" нэмнэ үү.
             </div>
           ) : (
-            <div>
-              {tests.map((test, i) => (
-                <div
-                  key={test._id}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: i < tests.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none", transition: "background 0.2s" }}
-                >
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "4px" }}>
-                      <span style={{ fontWeight: 600, color: "#ffffff", fontSize: "0.95rem" }}>{test.title}</span>
-                      <span style={{ fontSize: "11px", color: "#7c9eff", background: "rgba(124,158,255,0.1)", padding: "2px 8px", borderRadius: "100px", fontWeight: 600 }}>
-                        {test.price === 0 ? "ҮНЭГҮЙ" : `${test.price.toLocaleString('en-US')}₮`}
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: "16px" }}>
-                      <span style={{ fontSize: "0.8rem", color: "#475569" }}>{test.submissionCount} оролдлого</span>
-                      <span style={{ fontSize: "0.8rem", color: "#64748b" }}>{test.paidCount} төлөгдсөн</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-                    <Link href={`/admin/tests/${test._id}/questions`} style={{ textDecoration: "none" }}>
-                      <button style={{ padding: "7px 12px", borderRadius: "8px", background: "rgba(124,158,255,0.1)", border: "1px solid rgba(124,158,255,0.15)", color: "#7c9eff", fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
-                        <HelpCircle size={13} /> Асуулт
-                      </button>
-                    </Link>
-                    <Link href={`/admin/tests/${test._id}/edit`} style={{ textDecoration: "none" }}>
-                      <button style={{ padding: "7px 12px", borderRadius: "8px", background: "rgba(253,230,138,0.08)", border: "1px solid rgba(253,230,138,0.15)", color: "#fde68a", fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
-                        <Edit2 size={13} /> Засах
-                      </button>
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(test._id, test.title)}
-                      disabled={deletingId === test._id}
-                      style={{ padding: "7px 12px", borderRadius: "8px", background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.15)", color: "#f87171", fontSize: "0.8rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}
-                    >
-                      {deletingId === test._id ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={13} />}
-                      Устгах
-                    </button>
-                  </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={tests.map(t => t._id)} strategy={verticalListSortingStrategy}>
+                <div>
+                  {tests.map((test) => (
+                    <SortableTestItem 
+                      key={test._id} 
+                      test={test} 
+                      onDelete={handleDelete} 
+                      deletingId={deletingId} 
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>
