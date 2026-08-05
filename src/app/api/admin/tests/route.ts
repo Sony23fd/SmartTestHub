@@ -14,7 +14,8 @@ export async function GET() {
     tests.map(async (test: any) => {
       const submissionCount = await Submission.countDocuments({ testId: test._id });
       const paidCount = await Submission.countDocuments({ testId: test._id, paymentStatus: "PAID" });
-      return { ...test, _id: test._id.toString(), submissionCount, paidCount };
+      const verifiedPhoneCount = await Submission.countDocuments({ testId: test._id, phoneNumber: { $exists: true, $ne: null, $not: { $size: 0 }, $type: "string", $regex: /.+/ } });
+      return { ...test, _id: test._id.toString(), submissionCount, paidCount, verifiedPhoneCount };
     })
   );
 

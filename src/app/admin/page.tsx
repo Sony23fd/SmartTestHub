@@ -29,6 +29,7 @@ interface TestItem {
   price: number;
   submissionCount: number;
   paidCount: number;
+  verifiedPhoneCount?: number;
 }
 
 function SortableTestItem({ test, onDelete, deletingId }: any) {
@@ -163,6 +164,7 @@ export default function AdminDashboard() {
   const totalSubs = tests.reduce((s, t) => s + t.submissionCount, 0);
   const totalPaid = tests.reduce((s, t) => s + t.paidCount, 0);
   const totalEarnings = tests.reduce((s, t) => s + (t.paidCount * t.price), 0);
+  const totalVerifiedPhones = tests.reduce((s, t) => s + (t.verifiedPhoneCount || 0), 0);
 
   return (
     <div style={{ minHeight: "100vh", padding: "32px 20px" }}>
@@ -203,6 +205,7 @@ export default function AdminDashboard() {
             { label: "Нийт тест", value: tests.length, icon: <Brain size={20} color="#7c9eff" /> },
             { label: "Нийт оролдлого", value: totalSubs, icon: <BarChart3 size={20} color="#86efac" /> },
             { label: "Төлөгдсөн", value: totalPaid, icon: <BarChart3 size={20} color="#fde68a" /> },
+            { label: "Баталгаажсан дугаар", value: totalVerifiedPhones, icon: <CheckCircle size={20} color="#34d399" /> },
           ].map((stat, i) => (
             <div key={i} style={{ background: "rgba(15,23,42,0.75)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "20px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>

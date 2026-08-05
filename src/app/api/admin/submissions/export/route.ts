@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
   const testId = searchParams.get("testId");
+  const phoneStatus = searchParams.get("phoneStatus") || "ALL";
 
   const query: any = {};
 
@@ -21,6 +22,16 @@ export async function GET(request: Request) {
 
   if (testId && testId !== "ALL") {
     query.testId = testId;
+  }
+
+  if (phoneStatus === "VERIFIED") {
+    query.phoneNumber = { $exists: true, $ne: null, $not: { $size: 0 }, $type: "string", $regex: /.+/ };
+  } else if (phoneStatus === "UNVERIFIED") {
+    query.$or = [
+      { phoneNumber: { $exists: false } },
+      { phoneNumber: null },
+      { phoneNumber: "" }
+    ];
   }
 
   if (startDate || endDate) {

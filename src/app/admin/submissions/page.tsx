@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Trash2, Loader2, CheckCircle, Clock, ExternalLink, Search, CheckCircle2, Phone, Download, List, X } from "lucide-react";
+import { ArrowLeft, Trash2, Loader2, CheckCircle, Clock, ExternalLink, Search, CheckCircle2, Phone, Download, List, X, Copy, Check } from "lucide-react";
 
 interface SubmissionItem {
   _id: string;
@@ -46,6 +46,7 @@ export default function SubmissionsPage() {
   const [testId, setTestId] = useState("ALL");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [phoneStatus, setPhoneStatus] = useState("ALL");
   const [tests, setTests] = useState<{_id: string, title: string}[]>([]);
   
   // Pagination States
@@ -55,6 +56,7 @@ export default function SubmissionsPage() {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   
   // Modal states
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
@@ -70,6 +72,7 @@ export default function SubmissionsPage() {
         search: debouncedSearch,
         status,
         testId,
+        phoneStatus,
         ...(startDate && { startDate }),
         ...(endDate && { endDate })
       });
@@ -87,7 +90,7 @@ export default function SubmissionsPage() {
 
   useEffect(() => { 
     fetchSubmissions(); 
-  }, [page, debouncedSearch, status, testId, startDate, endDate]);
+  }, [page, debouncedSearch, status, testId, startDate, endDate, phoneStatus]);
 
   useEffect(() => {
     fetch("/api/admin/tests").then(res => res.json()).then(data => {
@@ -100,6 +103,7 @@ export default function SubmissionsPage() {
       search: debouncedSearch,
       status,
       testId,
+      phoneStatus,
       ...(startDate && { startDate }),
       ...(endDate && { endDate })
     });
@@ -137,10 +141,18 @@ export default function SubmissionsPage() {
     }
   };
 
+  const copyToClipboard = (id: string) => {
+    const url = `${window.location.origin}/submission/${id}`;
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const clearFilters = () => {
     setSearch("");
     setStatus("ALL");
     setTestId("ALL");
+    setPhoneStatus("ALL");
     setStartDate("");
     setEndDate("");
     setPage(1);
@@ -186,6 +198,16 @@ export default function SubmissionsPage() {
                 <option key={t._id} value={t._id}>{t.title}</option>
               ))}
             </select>
+
+            <select 
+              value={phoneStatus} 
+              onChange={(e) => { setPhoneStatus(e.target.value); setPage(1); }} 
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "#ffffff", padding: "10px", fontSize: "0.85rem", outline: "none", cursor: "pointer" }}
+            >
+              <option value="ALL">Утасны дугаар (Бүгд)</option>
+              <option value="VERIFIED">Баталгаажсан</option>
+              <option value="UNVERIFIED">Баталгаажаагүй</option>
+            </select>
             
             <input 
               type="date" 
@@ -214,7 +236,7 @@ export default function SubmissionsPage() {
               />
             </div>
             
-            {(search || status !== "ALL" || testId !== "ALL" || startDate || endDate) && (
+            {(search || status !== "ALL" || testId !== "ALL" || phoneStatus !== "ALL" || startDate || endDate) && (
               <button onClick={clearFilters} style={{ background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: "0.8rem", textDecoration: "underline" }}>Цэвэрлэх</button>
             )}
           </div>
@@ -237,10 +259,11 @@ export default function SubmissionsPage() {
                     </span>
                   </div>
                   {sub.phoneNumber && (
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
-                      <Phone size={14} color="#94a3b8" />
-                      <span style={{ fontSize: "0.85rem", color: "#e2e8f0", fontWeight: 500 }}>{sub.phoneNumber}</span>
-                    </div>
+                    <a href={`tel:${sub.phoneNumber}`} style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "8px", background: "rgba(134,239,172,0.1)", padding: "4px 8px", borderRadius: "8px", border: "1px solid rgba(134,239,172,0.2)" }}>
+                      <Phone size={12} color="#86efac" />
+                      <span style={{ fontSize: "0.85rem", color: "#86efac", fontWeight: 600 }}>{sub.phoneNumber}</span>
+                      <CheckCircle size={12} color="#86efac" />
+                    </a>
                   )}
                   <div style={{ display: "flex", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
                     <span style={{ fontSize: "0.8rem", color: "#64748b" }}>Оноо: <strong style={{ color: "#e2e8f0" }}>{sub.totalScore}</strong></span>
@@ -271,6 +294,20 @@ export default function SubmissionsPage() {
                       {approvingId === sub._id ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <CheckCircle2 size={16} />}
                     </button>
                   )}
+                  <button 
+                    onClick={() => copyToClipboard(sub._id)}
+                    style={{ padding: "8px 14px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}
+                    title="Үр дүнгийн хуудасны холбоосыг хуулах"
+                  >
+                    {copiedId === sub._id ? <Check size={14} color="#34d399" /> : <Copy size={14} />} Хуулах
+                  </button>
+                  <button 
+                    onClick={() => window.open(`/submission/${sub._id}`, "_blank")}
+                    style={{ padding: "8px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", cursor: "pointer" }}
+                    title="Шинэ цонхонд нээх"
+                  >
+                    <ExternalLink size={16} />
+                  </button>
                   <button 
                     onClick={() => handleDelete(sub._id)}
                     disabled={deletingId === sub._id}
@@ -329,7 +366,14 @@ export default function SubmissionsPage() {
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                       <span style={{ color: "#94a3b8", fontSize: "0.85rem" }}>Утасны дугаар:</span>
-                      <strong style={{ color: "#ffffff", fontSize: "0.9rem" }}>{submissionDetails.phoneNumber || "-"}</strong>
+                      {submissionDetails.phoneNumber ? (
+                        <a href={`tel:${submissionDetails.phoneNumber}`} style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "6px", color: "#86efac" }}>
+                          <strong style={{ fontSize: "0.9rem" }}>{submissionDetails.phoneNumber}</strong>
+                          <CheckCircle size={14} />
+                        </a>
+                      ) : (
+                        <strong style={{ color: "#ffffff", fontSize: "0.9rem" }}>-</strong>
+                      )}
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                       <span style={{ color: "#94a3b8", fontSize: "0.85rem" }}>Оноо:</span>
