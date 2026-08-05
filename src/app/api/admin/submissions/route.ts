@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   }
 
   if (phoneStatus === "VERIFIED") {
-    query.phoneNumber = { $exists: true, $ne: null, $not: { $size: 0 }, $type: "string", $regex: /.+/ };
+    query.phoneNumber = { $exists: true, $nin: [null, ""] };
   } else if (phoneStatus === "UNVERIFIED") {
     query.$or = [
       { phoneNumber: { $exists: false } },
