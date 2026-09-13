@@ -42,20 +42,40 @@ export async function POST(req: NextRequest) {
         // Ensure we retrieve the matched invoice_id
         const invoice_id = checkResult.rows[0].invoice_id || payment_id;
 
-        // Find Submission having this matching QPay invoice_id 
-        // (saved previously during /api/payments/create)
+        // 1. Check Submission having this matching QPay invoice_id
         const submission = await Submission.findOne({ paymentId: invoice_id });
 
-        if (!submission) {
-            return NextResponse.json({ success: false, error: 'Invoice not associated with any submission' }, { status: 404 });
+        if (submission) {
+            submission.paymentStatus = 'PAID';
+            await submission.save();
+            return NextResponse.json({ success: true, message: 'Submission payment confirmed securely' });
         }
 
-        // Mark as PAID
-        submission.paymentStatus = 'PAID';
-        await submission.save();
+        // 2. Check VideoOrder having this matching QPay invoice_id
+        const { VideoOrder } = await import('@/models/VideoOrder');
+        const { Video } = await import('@/models/Video');
+        const crypto = await import('crypto');
 
-        // Respond with OK so QPay marks notification as SUCCESS
-        return NextResponse.json({ success: true, message: 'Payment confirmed securely' });
+        const videoOrder = await VideoOrder.findOne({ paymentId: invoice_id }).populate('videoId');
+
+        if (videoOrder) {
+            videoOrder.paymentStatus = 'PAID';
+            videoOrder.paidAt = new Date();
+            if (!videoOrder.accessToken) {
+                videoOrder.accessToken = crypto.randomBytes(24).toString('hex');
+            }
+
+            const video = videoOrder.videoId as any;
+            const validDays = video?.validDays ?? 30;
+            if (validDays > 0) {
+                videoOrder.expiresAt = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000);
+            }
+
+            await videoOrder.save();
+            return NextResponse.json({ success: true, message: 'Video order payment confirmed securely' });
+        }
+
+        return NextResponse.json({ success: false, error: 'Invoice not associated with any submission or video order' }, { status: 404 });
     } catch (err: any) {
         return NextResponse.json(
             { success: false, error: err.message },

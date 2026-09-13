@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Smart Test Hub',
-  description: 'Мэргэжлийн сэтгэл зүйн тест болон оношилгооны систем',
+  title: 'Smart Test Hub | Хүүхэд, эцэг эхчүүдэд зориулсан сорил ба зөвлөгөө',
+  description: 'Шинжлэх ухааны үндэслэлтэй сэтгэл зүйн тестүүд болон эцэг эхчүүдэд зориулсан видео сургалт, зөвлөгөө.',
 };
 
 export default function RootLayout({
@@ -17,16 +17,12 @@ export default function RootLayout({
   return (
     <html lang="mn" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        {/* Animated Background Layers */}
-        <div className="stars" aria-hidden="true" />
-        <div className="nebula" aria-hidden="true" />
-        <div className="shooting-star-container" aria-hidden="true">
-          <div className="shooting-star star-1" />
-          <div className="shooting-star star-2" />
-          <div className="shooting-star star-3" />
-          <div className="shooting-star star-4" />
-          <div className="shooting-star star-5" />
-          <div className="shooting-star star-6" />
+        {/* Playful Ambient Floating Pastel Bubbles & Glows */}
+        <div className="ambient-background" aria-hidden="true">
+          <div className="pastel-orb orb-1" />
+          <div className="pastel-orb orb-2" />
+          <div className="pastel-orb orb-3" />
+          <div className="pastel-orb orb-4" />
         </div>
         
         {/* Page content sits above background */}

@@ -30,9 +30,33 @@ export async function GET(req: NextRequest) {
         .sort({ createdAt: -1 })
         .lean();
 
+        // Also find purchased videos
+        const { VideoOrder } = await import('@/models/VideoOrder');
+        const { Video } = await import('@/models/Video');
+        if (!Video) { /* touch */ }
+
+        const videoOrders = await VideoOrder.find({
+            phoneNumber: { $regex: new RegExp(cleanPhone, 'i') },
+            paymentStatus: 'PAID'
+        })
+        .populate('videoId', 'title slug thumbnailUrl duration authorName validDays')
+        .sort({ paidAt: -1, createdAt: -1 })
+        .lean();
+
+        const formattedVideos = videoOrders.map((vo: any) => ({
+            orderId: vo._id.toString(),
+            shortId: vo.shortId,
+            video: vo.videoId,
+            paidAt: vo.paidAt || vo.createdAt,
+            expiresAt: vo.expiresAt,
+            accessToken: vo.accessToken,
+            isExpired: vo.expiresAt ? new Date() > new Date(vo.expiresAt) : false
+        }));
+
         return NextResponse.json({ 
             success: true, 
-            data: submissions 
+            data: submissions,
+            videos: formattedVideos
         });
 
     } catch (error: any) {

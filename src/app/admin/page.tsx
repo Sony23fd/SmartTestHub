@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { PlusCircle, Trash2, Edit2, HelpCircle, LogOut, BarChart3, Loader2, ChevronRight, Brain, CheckCircle, Settings, GripVertical } from "lucide-react";
+import { PlusCircle, Trash2, Edit2, HelpCircle, LogOut, BarChart3, Loader2, ChevronRight, Brain, CheckCircle, Settings, GripVertical, Video } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -185,6 +185,11 @@ export default function AdminDashboard() {
             <Link href="/admin/settings" style={{ textDecoration: "none" }}>
               <button style={{ padding: "8px 16px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", fontSize: "0.8rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
                 <Settings size={14} /> Тохиргоо
+              </button>
+            </Link>
+            <Link href="/admin/videos" style={{ textDecoration: "none" }}>
+              <button style={{ padding: "8px 16px", borderRadius: "10px", background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.25)", color: "#c084fc", fontSize: "0.8rem", cursor: "pointer", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+                <Video size={14} /> Видео контент
               </button>
             </Link>
             <Link href="/admin/submissions" style={{ textDecoration: "none" }}>
