@@ -63,10 +63,15 @@ export default function VideoDetailPage({ params }: PageProps) {
 
   const fetchVideo = async () => {
     try {
-      const res = await fetch(`/api/videos/${slug}`);
+      const search = typeof window !== "undefined" ? window.location.search : "";
+      const res = await fetch(`/api/videos/${slug}${search}`);
       const data = await res.json();
       if (data.success) {
         setVideo(data.data);
+        // Clean URL to prevent users from forwarding the token in the address bar
+        if (typeof window !== "undefined" && window.location.search.includes("token=")) {
+          window.history.replaceState({}, "", window.location.pathname);
+        }
       } else {
         setError(data.error || "Видео олдсонгүй");
       }
