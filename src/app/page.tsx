@@ -70,9 +70,9 @@ export default async function HomePage() {
       >
         <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
           <img
-            src="/logo.png"
-            alt="Smart Test Hub"
-            style={{ width: "135px", height: "auto", objectFit: "contain" }}
+            src="/aulogo.png"
+            alt="Аутизмыг танихуй"
+            style={{ height: "46px", width: "auto", objectFit: "contain", display: "block" }}
           />
         </Link>
 
