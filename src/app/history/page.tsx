@@ -319,7 +319,11 @@ export default function HistoryPage() {
                         {item.expiresAt && (
                           <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                             <Calendar size={13} color="#d97706" />
-                            <span>Дуусах: {new Date(item.expiresAt).toLocaleDateString("mn-MN")}</span>
+                            <span>
+                              {!item.isExpired
+                                ? `Үлдсэн: ${Math.max(0, Math.ceil((new Date(item.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} хоног`
+                                : `Дууссан: ${new Date(item.expiresAt).toLocaleDateString("mn-MN")}`}
+                            </span>
                           </span>
                         )}
                       </div>

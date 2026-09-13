@@ -4,16 +4,21 @@ import { jwtVerify } from "jose";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow login page through
-  if (pathname === "/admin/login") {
+  // Allow admin login page and login API endpoint
+  if (pathname === "/admin/login" || pathname === "/api/admin/login") {
     return NextResponse.next();
   }
 
-  // Protect all /admin/* routes (except /admin/login)
-  if (pathname.startsWith("/admin")) {
+  const isAdminPage = pathname.startsWith("/admin");
+  const isAdminApi = pathname.startsWith("/api/admin");
+
+  if (isAdminPage || isAdminApi) {
     const token = request.cookies.get("admin_token")?.value;
 
     if (!token) {
+      if (isAdminApi) {
+        return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 401 });
+      }
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }
 
@@ -24,7 +29,9 @@ export async function middleware(request: NextRequest) {
       await jwtVerify(token, secret);
       return NextResponse.next();
     } catch {
-      // Token invalid or expired
+      if (isAdminApi) {
+        return NextResponse.json({ error: "Unauthorized: Invalid or expired admin session" }, { status: 401 });
+      }
       const response = NextResponse.redirect(new URL("/admin/login", request.url));
       response.cookies.delete("admin_token");
       return response;
@@ -35,5 +42,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 };

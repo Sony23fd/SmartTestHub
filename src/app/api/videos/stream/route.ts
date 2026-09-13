@@ -47,6 +47,10 @@ export async function GET(req: NextRequest) {
         return new NextResponse('Payment not verified for this video', { status: 403 });
       }
 
+      if (!order.isVerified) {
+        return new NextResponse('Phone number verification required', { status: 403 });
+      }
+
       if (order.expiresAt && new Date() > new Date(order.expiresAt)) {
         return new NextResponse('Access period has expired', { status: 403 });
       }
@@ -54,7 +58,8 @@ export async function GET(req: NextRequest) {
       targetFileName = video.videoFilePath;
     }
 
-    const filePath = path.join(process.cwd(), 'uploads', 'videos', targetFileName);
+    const safeTargetFileName = path.basename(targetFileName);
+    const filePath = path.join(process.cwd(), 'uploads', 'videos', safeTargetFileName);
 
     let fileStats;
     try {
@@ -66,7 +71,7 @@ export async function GET(req: NextRequest) {
     const fileSize = fileStats.size;
     const rangeHeader = req.headers.get('range');
 
-    const ext = path.extname(targetFileName).toLowerCase();
+    const ext = path.extname(safeTargetFileName).toLowerCase();
     const mimeType = ext === '.webm' ? 'video/webm' : ext === '.mov' ? 'video/quicktime' : 'video/mp4';
 
     if (rangeHeader) {
@@ -92,7 +97,7 @@ export async function GET(req: NextRequest) {
           'Accept-Ranges': 'bytes',
           'Content-Length': chunkSize.toString(),
           'Content-Type': mimeType,
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'private, max-age=3600',
         },
       });
     } else {

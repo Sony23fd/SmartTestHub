@@ -33,6 +33,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         videoId: video._id,
         accessToken: token,
         paymentStatus: 'PAID',
+        isVerified: true,
       }).lean();
 
       if (order) {
@@ -48,24 +49,9 @@ export async function GET(req: NextRequest, { params }: Params) {
           };
         }
       }
-    } else if (orderId) {
-      const order = await VideoOrder.findById(orderId).lean();
-      if (order && order.paymentStatus === 'PAID') {
-        const isExpired = order.expiresAt && new Date() > new Date(order.expiresAt);
-        if (!isExpired) {
-          hasAccess = true;
-          activeOrder = {
-            orderId: order._id.toString(),
-            phoneNumber: order.phoneNumber,
-            paidAt: order.paidAt,
-            expiresAt: order.expiresAt,
-            accessToken: order.accessToken,
-          };
-        }
-      }
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: {
         id: (video as any)._id.toString(),
@@ -83,6 +69,17 @@ export async function GET(req: NextRequest, { params }: Params) {
         order: activeOrder,
       },
     });
+
+    // Prolong cookie session if access is valid
+    if (hasAccess && activeOrder?.accessToken) {
+      response.cookies.set(`v_token_${video._id.toString()}`, activeOrder.accessToken, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+        sameSite: 'lax',
+      });
+    }
+
+    return response;
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }

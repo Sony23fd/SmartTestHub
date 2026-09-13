@@ -27,9 +27,9 @@ export interface VerifySessionStatus {
 const API_BASE = "https://api.verify.mn";
 
 function getApiKey() {
-  const key = process.env.VERIFY_MN_API_KEY;
+  const key = process.env.VERIFY_MN_TOKEN || process.env.VERIFY_MN_API_KEY;
   if (!key) {
-    throw new Error("VERIFY_MN_API_KEY is not defined in environment variables");
+    throw new Error("VERIFY_MN_TOKEN or VERIFY_MN_API_KEY is not defined in environment variables");
   }
   return key;
 }
@@ -53,7 +53,11 @@ export async function createVerifySession(opts: VerifySessionOptions): Promise<V
 }
 
 export async function getVerifySessionStatus(sessionId: string): Promise<VerifySessionStatus> {
-  const res = await fetch(`${API_BASE}/sessions/${sessionId}`);
+  const res = await fetch(`${API_BASE}/sessions/${sessionId}`, {
+    headers: {
+      "Authorization": `Bearer ${getApiKey()}`
+    }
+  });
   
   if (!res.ok) {
     const errText = await res.text();

@@ -5,6 +5,8 @@ export interface IVideoOrder extends Document {
   amount: number;
   phoneNumber: string;
   paymentStatus: 'PENDING' | 'PAID';
+  isVerified: boolean;
+  verifySessionId?: string;
   paymentId?: string;
   shortId: string;
   accessToken?: string;
@@ -31,6 +33,8 @@ const VideoOrderSchema = new Schema<IVideoOrder>(
       default: 'PENDING',
       index: true,
     },
+    isVerified: { type: Boolean, default: false, index: true },
+    verifySessionId: { type: String, default: null, index: true },
     paymentId: { type: String, default: null, index: true },
     shortId: { type: String, required: true, unique: true },
     accessToken: { type: String, default: null, index: true },

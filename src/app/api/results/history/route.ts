@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
         const _testLoad = Test; 
         
         const submissions = await Submission.find({ 
-            phoneNumber: { $regex: new RegExp(cleanPhone, 'i') },
+            phoneNumber: cleanPhone,
             isVerified: true 
         })
         .populate('testId', 'title slug icon price')
@@ -36,8 +36,9 @@ export async function GET(req: NextRequest) {
         if (!Video) { /* touch */ }
 
         const videoOrders = await VideoOrder.find({
-            phoneNumber: { $regex: new RegExp(cleanPhone, 'i') },
-            paymentStatus: 'PAID'
+            phoneNumber: cleanPhone,
+            paymentStatus: 'PAID',
+            isVerified: true
         })
         .populate('videoId', 'title slug thumbnailUrl duration authorName validDays')
         .sort({ paidAt: -1, createdAt: -1 })

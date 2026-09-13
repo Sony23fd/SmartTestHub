@@ -27,6 +27,14 @@ export async function GET(req: NextRequest) {
                 submission.isVerified = true;
                 await submission.save();
             }
+
+            const { VideoOrder } = await import('@/models/VideoOrder');
+            const order = await VideoOrder.findOne({ verifySessionId: sessionId });
+            if (order && !order.isVerified) {
+                order.phoneNumber = status.phone;
+                order.isVerified = true;
+                await order.save();
+            }
         }
 
         return NextResponse.json({

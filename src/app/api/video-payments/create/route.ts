@@ -39,9 +39,8 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           success: true,
           alreadyPaid: true,
-          accessToken: existingPaid.accessToken,
           orderId: existingPaid._id.toString(),
-          message: 'Та энэ видеог өмнө нь худалдан авсан байна.',
+          message: 'Та энэ видеог өмнө нь худалдан авсан байна. Утасны дугаараа баталгаажуулан эрхээ сэргээнэ үү.',
         });
       }
     }
@@ -63,8 +62,40 @@ export async function POST(req: NextRequest) {
       amount: price,
       phoneNumber: cleanPhone,
       paymentStatus: 'PENDING',
+      isVerified: false,
       shortId,
     });
+
+    // Initialize verify.mn SMS verification session
+    let verifyData: any = null;
+    try {
+      const appDomain = process.env.NEXT_PUBLIC_BASE_URL 
+        || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : '')
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') 
+        || 'http://localhost:3000';
+      const callbackUrl = `${appDomain}/api/webhook/verify?videoOrderId=${order._id.toString()}`;
+
+      const { createVerifySession } = await import('@/lib/verifyMn');
+      const vRes = await createVerifySession({
+        phone: cleanPhone,
+        text: order.shortId,
+        callback: callbackUrl,
+      });
+
+      order.verifySessionId = vRes.sessionId;
+      await order.save();
+
+      verifyData = {
+        sessionId: vRes.sessionId,
+        smsUri: vRes.smsUri,
+        displayInstruction: vRes.displayInstruction,
+        shortcode: vRes.shortcode,
+        text: vRes.text,
+        expiresAt: vRes.expiresAt,
+      };
+    } catch (vErr: any) {
+      console.warn('Verify session creation failed:', vErr.message);
+    }
 
     if (!setting.qpayEnabled) {
       return NextResponse.json({
@@ -72,6 +103,7 @@ export async function POST(req: NextRequest) {
         qpayDisabled: true,
         orderId: order._id.toString(),
         shortId,
+        verify: verifyData,
         bankInfo: {
           price,
           name: setting.bankName,
@@ -101,6 +133,8 @@ export async function POST(req: NextRequest) {
         qr_image: qpayResponse.qr_image,
         urls: qpayResponse.urls,
         price,
+        phone: cleanPhone,
+        verify: verifyData,
       },
     });
   } catch (error: any) {

@@ -13,6 +13,7 @@ import {
   Loader2,
   CheckCircle2,
   Heart,
+  RotateCcw,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import CustomVideoPlayer from "@/components/CustomVideoPlayer";
@@ -52,7 +53,13 @@ export default function VideoDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<"PAY" | "RESTORE">("PAY");
   const [isPlayingPreview, setIsPlayingPreview] = useState(false);
+
+  const openPaymentModal = (mode: "PAY" | "RESTORE" = "PAY") => {
+    setPaymentMode(mode);
+    setIsPaymentOpen(true);
+  };
 
   const fetchVideo = async () => {
     try {
@@ -223,9 +230,11 @@ export default function VideoDetailPage({ params }: PageProps) {
                   <span>Таны үзэх эрх баталгаажсан байна ({video.order?.phoneNumber})</span>
                 </div>
                 {video.order?.expiresAt && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b", fontSize: "0.82rem", fontWeight: 600 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#15803d", fontSize: "0.84rem", fontWeight: 700 }}>
                     <Calendar size={14} color="#16a34a" />
-                    <span>Хүчинтэй хугацаа: {new Date(video.order.expiresAt).toLocaleDateString()}</span>
+                    <span>
+                      Үлдсэн: {Math.max(0, Math.ceil((new Date(video.order.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} хоног ({new Date(video.order.expiresAt).toLocaleDateString("mn-MN")} хүртэл)
+                    </span>
                   </div>
                 )}
               </motion.div>
@@ -327,11 +336,11 @@ export default function VideoDetailPage({ params }: PageProps) {
                       хүссэн үедээ утасны дугаараараа давтан үзэх эрхтэй болно.
                     </p>
 
-                    <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
                       <motion.button
                         whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.96 }}
-                        onClick={() => setIsPaymentOpen(true)}
+                        onClick={() => openPaymentModal("PAY")}
                         style={{
                           padding: "14px 28px",
                           borderRadius: "16px",
@@ -375,6 +384,32 @@ export default function VideoDetailPage({ params }: PageProps) {
                           <span>Танилцуулга үзэх</span>
                         </motion.button>
                       )}
+                    </div>
+
+                    {/* Restore link */}
+                    <div style={{ marginTop: "16px" }}>
+                      <button
+                        type="button"
+                        onClick={() => openPaymentModal("RESTORE")}
+                        style={{
+                          background: "rgba(255, 255, 255, 0.15)",
+                          border: "1px solid rgba(255, 255, 255, 0.3)",
+                          borderRadius: "100px",
+                          padding: "8px 18px",
+                          color: "#ffffff",
+                          fontSize: "0.84rem",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          backdropFilter: "blur(6px)",
+                          transition: "all 0.2s",
+                        }}
+                      >
+                        <RotateCcw size={14} />
+                        <span>Өмнө нь эрх авсан уу? Утасны дугаараар сэргээх</span>
+                      </button>
                     </div>
                   </div>
                 </>
@@ -502,35 +537,59 @@ export default function VideoDetailPage({ params }: PageProps) {
                 </p>
               </div>
 
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => setIsPaymentOpen(true)}
-                style={{
-                  padding: "14px 28px",
-                  borderRadius: "14px",
-                  background: "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)",
-                  border: "none",
-                  color: "#ffffff",
-                  fontWeight: 800,
-                  fontSize: "0.95rem",
-                  cursor: "pointer",
-                  boxShadow: "0 8px 20px rgba(2, 132, 199, 0.3)",
-                }}
-              >
-                Үзэх эрх авах ({video.price.toLocaleString("en-US")}₮)
-              </motion.button>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={() => openPaymentModal("PAY")}
+                  style={{
+                    padding: "14px 28px",
+                    borderRadius: "14px",
+                    background: "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)",
+                    border: "none",
+                    color: "#ffffff",
+                    fontWeight: 800,
+                    fontSize: "0.95rem",
+                    cursor: "pointer",
+                    boxShadow: "0 8px 20px rgba(2, 132, 199, 0.3)",
+                  }}
+                >
+                  Үзэх эрх авах ({video.price.toLocaleString("en-US")}₮)
+                </motion.button>
+
+                <button
+                  type="button"
+                  onClick={() => openPaymentModal("RESTORE")}
+                  style={{
+                    padding: "13px 20px",
+                    borderRadius: "14px",
+                    background: "#ffffff",
+                    border: "1.5px solid #cbd5e1",
+                    color: "#0f172a",
+                    fontWeight: 800,
+                    fontSize: "0.9rem",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <RotateCcw size={15} color="#0284c7" />
+                  <span>Эрх сэргээх</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* Payment & Verification Modal */}
       <VideoPaymentModal
         videoId={video.id}
         videoTitle={video.title}
         price={video.price}
         isOpen={isPaymentOpen}
+        initialMode={paymentMode}
         onClose={() => setIsPaymentOpen(false)}
         onSuccess={handlePaymentSuccess}
       />
