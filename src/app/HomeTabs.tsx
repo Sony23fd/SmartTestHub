@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Video, Sparkles, LayoutGrid } from "lucide-react";
+import { Brain, Video } from "lucide-react";
 import TestGrid from "./TestGrid";
 import VideoGrid, { VideoCardItem } from "@/components/VideoGrid";
 
@@ -12,10 +12,9 @@ interface HomeTabsProps {
 }
 
 export default function HomeTabs({ tests, videos }: HomeTabsProps) {
-  const [activeTab, setActiveTab] = useState<"ALL" | "TESTS" | "VIDEOS">("ALL");
+  const [activeTab, setActiveTab] = useState<"TESTS" | "VIDEOS">("TESTS");
 
   const tabs = [
-    { id: "ALL", label: "Бүгд", icon: Sparkles, count: tests.length + videos.length },
     { id: "TESTS", label: "Сэтгэл зүйн сорилууд", icon: Brain, count: tests.length },
     { id: "VIDEOS", label: "Видео сургалтууд", icon: Video, count: videos.length },
   ];
@@ -47,7 +46,7 @@ export default function HomeTabs({ tests, videos }: HomeTabsProps) {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as "TESTS" | "VIDEOS")}
               style={{
                 position: "relative",
                 display: "flex",
@@ -109,38 +108,6 @@ export default function HomeTabs({ tests, videos }: HomeTabsProps) {
           transition={{ duration: 0.25 }}
           style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
         >
-          {activeTab === "ALL" && (
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "52px" }}>
-              {/* Videos Section */}
-              {videos.length > 0 && (
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1100px", margin: "0 auto 20px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <span style={{ fontSize: "1.2rem" }}>🎬</span>
-                      <h3 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a" }}>
-                        Эцэг эхчүүдэд зориулсан видео сургалтууд
-                      </h3>
-                    </div>
-                  </div>
-                  <VideoGrid videos={videos} />
-                </div>
-              )}
-
-              {/* Tests Section */}
-              <div>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1100px", margin: "0 auto 20px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "1.2rem" }}>🧠</span>
-                    <h3 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#0f172a" }}>
-                      Сэтгэл зүйн сорилууд
-                    </h3>
-                  </div>
-                </div>
-                <TestGrid tests={tests} />
-              </div>
-            </div>
-          )}
-
           {activeTab === "TESTS" && (
             <div style={{ width: "100%" }}>
               <TestGrid tests={tests} />

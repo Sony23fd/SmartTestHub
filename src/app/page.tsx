@@ -2,7 +2,6 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { Test } from "@/models/Test";
 import { Video } from "@/models/Video";
 import HomeTabs from "./HomeTabs";
-import FeaturedVideoSpotlight from "@/components/FeaturedVideoSpotlight";
 import Link from "next/link";
 import { History, Sparkles, Heart } from "lucide-react";
 
@@ -37,8 +36,6 @@ export default async function HomePage() {
     authorTitle: v.authorTitle || "",
     validDays: v.validDays || 30,
   }));
-
-  const featuredVideo = serializedVideos.length > 0 ? serializedVideos[0] : null;
 
   return (
     <main
@@ -137,9 +134,6 @@ export default async function HomePage() {
           Шинжлэх ухааны үндэслэлтэй сэтгэл зүйн сорилууд болон эцэг эхчүүдэд зориулсан мэргэжлийн практик видео сургалтууд.
         </p>
       </div>
-
-      {/* Featured Video Spotlight (if video exists) */}
-      {featuredVideo && <FeaturedVideoSpotlight video={featuredVideo} />}
 
       {/* Tabs & Full Catalog */}
       <HomeTabs tests={serializedTests} videos={serializedVideos} />
