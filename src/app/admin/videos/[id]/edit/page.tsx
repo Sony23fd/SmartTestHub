@@ -404,15 +404,31 @@ export default function EditVideoPage({ params }: PageProps) {
                 <label style={{ display: "block", color: "#cbd5e1", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>
                   Ковер зураг
                 </label>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "thumbnail")}
                     style={{ fontSize: "0.85rem", color: "#94a3b8" }}
                   />
+                  <input
+                    type="text"
+                    placeholder="эсвэл зургийн URL / зам (жишээ: /thumbnails/autism_cover.jpg)"
+                    value={thumbnailUrl}
+                    onChange={(e) => setThumbnailUrl(e.target.value)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "10px",
+                      background: "rgba(15,23,42,0.6)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      fontSize: "0.82rem",
+                      flex: 1,
+                      minWidth: "200px",
+                    }}
+                  />
                   {uploadingThumb && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
-                  {thumbnailUrl && <span style={{ color: "#86efac", fontSize: "0.8rem" }}>✓ Зурагтай ({thumbnailUrl.slice(0, 25)}...)</span>}
+                  {thumbnailUrl && <span style={{ color: "#86efac", fontSize: "0.8rem" }}>✓ Зурагтай</span>}
                 </div>
               </div>
 
@@ -420,12 +436,28 @@ export default function EditVideoPage({ params }: PageProps) {
                 <label style={{ display: "block", color: "#cbd5e1", fontSize: "0.85rem", fontWeight: 600, marginBottom: "6px" }}>
                   Үндсэн видео файл
                 </label>
-                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
                   <input
                     type="file"
                     accept="video/*"
                     onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "video")}
                     style={{ fontSize: "0.85rem", color: "#94a3b8" }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="эсвэл видеоны URL / файлын нэр (жишээ: aucontent_main.mp4)"
+                    value={videoFilePath}
+                    onChange={(e) => setVideoFilePath(e.target.value)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: "10px",
+                      background: "rgba(15,23,42,0.6)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "#fff",
+                      fontSize: "0.82rem",
+                      flex: 1,
+                      minWidth: "200px",
+                    }}
                   />
                   {uploadingVideo && (
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>

@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  outputFileTracingIncludes: {
+    '/api/videos/stream': ['./public/videos/**/*', './uploads/videos/**/*'],
+  },
 };
 
 export default nextConfig;

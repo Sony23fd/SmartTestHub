@@ -58,13 +58,39 @@ export async function GET(req: NextRequest) {
       targetFileName = video.videoFilePath;
     }
 
-    const safeTargetFileName = path.basename(targetFileName);
-    const filePath = path.join(process.cwd(), 'uploads', 'videos', safeTargetFileName);
+    // Handle external URL if video is hosted externally (e.g. Cloudflare, S3)
+    if (targetFileName.startsWith('http://') || targetFileName.startsWith('https://')) {
+      return NextResponse.redirect(targetFileName);
+    }
 
+    const safeTargetFileName = path.basename(targetFileName);
+    
+    // Check possible storage locations:
+    // 1. uploads/videos/ (local uploads)
+    // 2. public/videos/ (bundled project videos)
+    const possiblePaths = [
+      path.join(process.cwd(), 'uploads', 'videos', safeTargetFileName),
+      path.join(process.cwd(), 'public', 'videos', safeTargetFileName),
+      path.join(process.cwd(), 'public', safeTargetFileName),
+    ];
+
+    let filePath = '';
     let fileStats;
-    try {
-      fileStats = await stat(filePath);
-    } catch {
+
+    for (const testPath of possiblePaths) {
+      try {
+        const s = await stat(testPath);
+        if (s.isFile()) {
+          filePath = testPath;
+          fileStats = s;
+          break;
+        }
+      } catch {
+        // try next path
+      }
+    }
+
+    if (!filePath || !fileStats) {
       return new NextResponse('Video file not found on server', { status: 404 });
     }
 
