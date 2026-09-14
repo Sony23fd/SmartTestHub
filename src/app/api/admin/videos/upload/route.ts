@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
+import { mkdir } from 'fs/promises';
+import { createWriteStream } from 'fs';
+import { pipeline } from 'stream/promises';
+import { Readable } from 'stream';
 import path from 'path';
 import crypto from 'crypto';
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes for large video uploads
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,9 +19,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Файл оруулаагүй байна' }, { status: 400 });
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
     const ext = path.extname(file.name) || (type === 'thumbnail' ? '.jpg' : '.mp4');
     const randomName = `${Date.now()}_${crypto.randomBytes(6).toString('hex')}${ext}`;
 
@@ -24,7 +27,11 @@ export async function POST(req: NextRequest) {
       const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'thumbnails');
       await mkdir(uploadDir, { recursive: true });
       const filePath = path.join(uploadDir, randomName);
-      await writeFile(filePath, buffer);
+      
+      const nodeStream = Readable.fromWeb(file.stream() as any);
+      const writeStream = createWriteStream(filePath);
+      await pipeline(nodeStream, writeStream);
+
       return NextResponse.json({
         success: true,
         path: `/uploads/thumbnails/${randomName}`,
@@ -34,7 +41,12 @@ export async function POST(req: NextRequest) {
       const uploadDir = path.join(process.cwd(), 'uploads', 'videos');
       await mkdir(uploadDir, { recursive: true });
       const filePath = path.join(uploadDir, randomName);
-      await writeFile(filePath, buffer);
+
+      // Stream directly to disk to handle large videos (e.g. 250MB+) without memory overflow
+      const nodeStream = Readable.fromWeb(file.stream() as any);
+      const writeStream = createWriteStream(filePath);
+      await pipeline(nodeStream, writeStream);
+
       return NextResponse.json({
         success: true,
         fileName: randomName,

@@ -67,7 +67,10 @@ export default function EditVideoPage({ params }: PageProps) {
     fetchVideo();
   }, [id]);
 
-  const handleFileUpload = async (
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [previewProgress, setPreviewProgress] = useState(0);
+
+  const handleFileUpload = (
     file: File,
     type: "thumbnail" | "video" | "preview"
   ) => {
@@ -76,29 +79,52 @@ export default function EditVideoPage({ params }: PageProps) {
     formData.append("type", type);
 
     if (type === "thumbnail") setUploadingThumb(true);
-    if (type === "video") setUploadingVideo(true);
-    if (type === "preview") setUploadingPreview(true);
+    if (type === "video") {
+      setUploadingVideo(true);
+      setVideoProgress(0);
+    }
+    if (type === "preview") {
+      setUploadingPreview(true);
+      setPreviewProgress(0);
+    }
 
-    try {
-      const res = await fetch("/api/admin/videos/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (type === "thumbnail") setThumbnailUrl(data.path);
-        if (type === "video") setVideoFilePath(data.path);
-        if (type === "preview") setPreviewVideoPath(data.path);
-      } else {
-        alert(data.error || "Файл хуулахад алдаа гарлаа");
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/admin/videos/upload");
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        if (type === "video") setVideoProgress(percent);
+        if (type === "preview") setPreviewProgress(percent);
       }
-    } catch {
-      alert("Сүлжээний алдаа гарлаа");
-    } finally {
+    };
+
+    xhr.onload = () => {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status === 200 && data.success) {
+          if (type === "thumbnail") setThumbnailUrl(data.path);
+          if (type === "video") setVideoFilePath(data.path);
+          if (type === "preview") setPreviewVideoPath(data.path);
+        } else {
+          alert(data.error || "Файл хуулахад алдаа гарлаа");
+        }
+      } catch {
+        alert("Хариу боловсруулахад алдаа гарлаа");
+      }
       if (type === "thumbnail") setUploadingThumb(false);
       if (type === "video") setUploadingVideo(false);
       if (type === "preview") setUploadingPreview(false);
-    }
+    };
+
+    xhr.onerror = () => {
+      alert("Сүлжээний алдаа гарлаа. Хэрэв Vercel дээр байгаа бол файлын дээд хэмжээ 4.5MB хязгаартай тул видеог шахах хэрэгтэй.");
+      if (type === "thumbnail") setUploadingThumb(false);
+      if (type === "video") setUploadingVideo(false);
+      if (type === "preview") setUploadingPreview(false);
+    };
+
+    xhr.send(formData);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -401,7 +427,17 @@ export default function EditVideoPage({ params }: PageProps) {
                     onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], "video")}
                     style={{ fontSize: "0.85rem", color: "#94a3b8" }}
                   />
-                  {uploadingVideo && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
+                  {uploadingVideo && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#7c9eff", fontSize: "0.8rem", fontWeight: 700 }}>
+                        <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                        <span>Сервер рүү хуулж байна... {videoProgress}%</span>
+                      </div>
+                      <div style={{ width: "160px", height: "6px", background: "rgba(255,255,255,0.1)", borderRadius: "100px", overflow: "hidden" }}>
+                        <div style={{ width: `${videoProgress}%`, height: "100%", background: "#7c9eff", transition: "width 0.2s ease" }} />
+                      </div>
+                    </div>
+                  )}
                   {videoFilePath && <span style={{ color: "#86efac", fontSize: "0.8rem" }}>✓ Файл холбогдсон</span>}
                 </div>
               </div>
