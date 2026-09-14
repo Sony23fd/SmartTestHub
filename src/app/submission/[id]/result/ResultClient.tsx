@@ -200,7 +200,7 @@ export default function ResultClient({ submissionId }: { submissionId: string })
             </h4>
 
             <p style={{ color: "#475569", fontSize: "0.85rem", lineHeight: 1.5, marginBottom: "14px" }}>
-              Эцэг эхчүүдэд зориулсан мэргэжлийн сэтгэл зүйчийн бодит заавар, практик зөвлөгөөг багтаасан видео хичээлийг үзээрэй.
+              Эцэг эхчүүдэд зориулсан бодит заавар, практик зөвлөгөөг багтаасан видео хичээлийг үзээрэй.
             </p>
 
             <Link href={`/videos/${featuredVideo.slug}`} style={{ textDecoration: "none" }}>

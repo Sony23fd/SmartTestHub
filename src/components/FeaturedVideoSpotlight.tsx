@@ -122,7 +122,7 @@ export default function FeaturedVideoSpotlight({ video }: FeaturedVideoProps) {
               marginBottom: "22px",
             }}
           >
-            {video.description || "Хүүхдийнхээ зан төлөв, сэтгэл зүйн онцлогийг ойлгож, зөв чиглүүлэхэд туслах мэргэжлийн сэтгэл зүйчийн бодит зөвлөгөө, зааварчилгаа."}
+            {video.description || "Хүүхдийнхээ зан төлөв, онцлогийг ойлгож, зөв чиглүүлэхэд туслах практик зөвлөгөө, зааварчилгаа."}
           </p>
 
           {/* Key Advantages List */}

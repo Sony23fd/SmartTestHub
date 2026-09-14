@@ -317,7 +317,7 @@ export default function NewVideoPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Б.Энхмаа"
+                  placeholder="Багш / Мэргэжилтний нэр (сонголттой)"
                   value={authorName}
                   onChange={(e) => setAuthorName(e.target.value)}
                   style={{
@@ -338,7 +338,7 @@ export default function NewVideoPage() {
                 </label>
                 <input
                   type="text"
-                  placeholder="Сэтгэл зүйч"
+                  placeholder="Мэргэжил / Зэрэг (сонголттой)"
                   value={authorTitle}
                   onChange={(e) => setAuthorTitle(e.target.value)}
                   style={{
