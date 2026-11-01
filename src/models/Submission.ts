@@ -1,4 +1,11 @@
 import mongoose, { Schema, Document, models, model, Types } from 'mongoose';
+import { Test } from './Test';
+import { Question } from './Question';
+
+// Ensure referenced models are registered for populate queries
+if (!Test || !Question) {
+  // no-op
+}
 
 // ---------- Response sub-document ----------
 export interface IResponse {

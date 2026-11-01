@@ -4,6 +4,11 @@ import { Submission } from '@/models/Submission';
 import { Test } from '@/models/Test';
 import { Question } from '@/models/Question';
 
+// Ensure referenced models are registered for populate
+if (!Test || !Question) {
+  // no-op
+}
+
 interface Params {
   params: Promise<{ id: string }>;
 }
@@ -12,6 +17,7 @@ interface Params {
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
     await connectToDatabase();
+    const _ = { Test, Question };
     const { id } = await params;
 
     const submission = await Submission.findById(id)

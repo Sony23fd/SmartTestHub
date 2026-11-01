@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const totalOrders = await VideoOrder.countDocuments();
     const paidOrders = await VideoOrder.countDocuments({ paymentStatus: 'PAID' });
     const paidList = await VideoOrder.find({ paymentStatus: 'PAID' }).select('amount').lean();
-    const totalEarnings = paidList.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    const totalEarnings = paidList.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
 
     return NextResponse.json({
       success: true,

@@ -3,6 +3,11 @@ import { connectToDatabase } from '@/lib/mongoose';
 import { Submission } from '@/models/Submission';
 import { Test } from '@/models/Test';
 
+// Ensure Test model is registered in Mongoose for populate
+if (!Test) {
+    // no-op
+}
+
 interface Params {
     params: Promise<{ id: string }>;
 }
@@ -14,6 +19,8 @@ interface Params {
 export async function GET(_req: NextRequest, { params }: Params) {
     try {
         await connectToDatabase();
+        // Prevent tree-shaking and ensure Test model is in runtime memory
+        const _ = Test;
         const { id } = await params;
 
         const submission = await Submission.findById(id).populate('testId', 'title slug price icon');

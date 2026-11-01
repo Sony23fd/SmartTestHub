@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, model, Types } from 'mongoose';
+import mongoose, { Schema, Document, models, model, Types } from 'mongoose';
 
 export interface IVideoOrder extends Document {
   videoId: Types.ObjectId;
@@ -45,8 +45,11 @@ const VideoOrderSchema = new Schema<IVideoOrder>(
   { timestamps: true }
 );
 
-if (mongoose.models.VideoOrder) {
-  delete mongoose.models.VideoOrder;
+import { Video } from './Video';
+
+// Ensure Video model is registered for populate queries
+if (!Video) {
+  // no-op
 }
 
-export const VideoOrder = model<IVideoOrder>('VideoOrder', VideoOrderSchema);
+export const VideoOrder = models.VideoOrder || model<IVideoOrder>('VideoOrder', VideoOrderSchema);

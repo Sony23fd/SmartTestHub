@@ -4,9 +4,15 @@ import { VideoOrder } from '@/models/VideoOrder';
 import { Video } from '@/models/Video';
 import crypto from 'crypto';
 
+// Ensure Video model is registered for populate
+if (!Video) {
+  // no-op
+}
+
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
+    const _ = Video;
     const { searchParams } = req.nextUrl;
     const orderId = searchParams.get('orderId');
 

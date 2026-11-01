@@ -1,4 +1,10 @@
 import mongoose, { Schema, Document, models, model, Types } from 'mongoose';
+import { Test } from './Test';
+
+// Ensure Test model is registered for populate queries
+if (!Test) {
+  // no-op
+}
 
 // ---------- Option sub-document ----------
 export interface IOption {

@@ -3,10 +3,16 @@ import { connectToDatabase } from '@/lib/mongoose';
 import { Submission } from '@/models/Submission';
 import { Test } from '@/models/Test';
 
+// Ensure Test model is registered for populate
+if (!Test) {
+  // no-op
+}
+
 // GET /api/submissions — list all submissions (optionally filter by ?testId=)
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
+    const _ = Test;
     const { searchParams } = new URL(req.url);
     const testId = searchParams.get('testId');
 

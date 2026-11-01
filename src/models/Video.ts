@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, model } from 'mongoose';
+import mongoose, { Schema, Document, models, model } from 'mongoose';
 
 export interface IVideo extends Document {
   title: string;
@@ -37,8 +37,4 @@ const VideoSchema = new Schema<IVideo>(
   { timestamps: true }
 );
 
-if (mongoose.models.Video) {
-  delete mongoose.models.Video;
-}
-
-export const Video = model<IVideo>('Video', VideoSchema);
+export const Video = models.Video || model<IVideo>('Video', VideoSchema);
